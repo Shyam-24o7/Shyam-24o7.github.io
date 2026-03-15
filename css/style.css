@@ -255,6 +255,7 @@ img { max-width: 100%; height: auto; display: block; }
   padding: 0.3rem 0.6rem;
   border-radius: var(--radius-sm);
   cursor: pointer;
+  margin-left: 0.6rem;
   transition: color var(--dur), border-color var(--dur);
 }
 .nav-toggle:hover { color: var(--accent); border-color: var(--accent-border); }
