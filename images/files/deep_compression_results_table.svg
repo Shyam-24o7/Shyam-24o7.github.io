@@ -1,0 +1,62 @@
+<svg width="100%" viewBox="0 0 680 260" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="680" height="260" fill="#1e293b"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="13" font-weight="500" fill="#f8fafc" x="340" y="24" text-anchor="middle">Deep Compression — results (Han, Mao &amp; Dally, ICLR 2016)</text>
+
+  <!-- Table header -->
+  <rect x="40" y="36" width="600" height="36" rx="4" fill="#1e1b4b"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" font-weight="500" fill="#f8fafc" x="120" y="59" text-anchor="middle">Model</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" font-weight="500" fill="#f8fafc" x="240" y="59" text-anchor="middle">Original size</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" font-weight="500" fill="#f8fafc" x="360" y="59" text-anchor="middle">Compressed size</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" font-weight="500" fill="#f8fafc" x="480" y="59" text-anchor="middle">Compression ratio</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" font-weight="500" fill="#f8fafc" x="600" y="59" text-anchor="middle">Accuracy change</text>
+
+  <!-- Column dividers header -->
+  <line x1="200" y1="36" x2="200" y2="72" stroke="rgba(255,255,255,0.2)" stroke-width="0.5"/>
+  <line x1="320" y1="36" x2="320" y2="72" stroke="rgba(255,255,255,0.2)" stroke-width="0.5"/>
+  <line x1="440" y1="36" x2="440" y2="72" stroke="rgba(255,255,255,0.2)" stroke-width="0.5"/>
+  <line x1="560" y1="36" x2="560" y2="72" stroke="rgba(255,255,255,0.2)" stroke-width="0.5"/>
+
+  <!-- Row 1: AlexNet -->
+  <rect x="40" y="72" width="600" height="52" rx="0" fill="#1a1040"/>
+  <rect x="40" y="72" width="600" height="52" rx="0" fill="none" stroke="#334155" stroke-width="0.5"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" font-weight="500" fill="#e2e8f0" x="120" y="94" text-anchor="middle">AlexNet</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="10" fill="#94a3b8" x="120" y="112" text-anchor="middle">2012 · 60M params</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="14" font-weight="500" fill="#a5b4fc" x="240" y="100" text-anchor="middle">240 MB</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="14" font-weight="500" fill="#4ade80" x="360" y="100" text-anchor="middle">6.9 MB</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="16" font-weight="500" fill="#818cf8" x="480" y="102" text-anchor="middle">35×</text>
+  <rect x="567" y="83" width="66" height="26" rx="4" fill="#22c55e"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" font-weight="500" fill="#f8fafc" x="600" y="101" text-anchor="middle">&lt; 1%</text>
+
+  <!-- Column dividers row 1 -->
+  <line x1="200" y1="72" x2="200" y2="124" stroke="#334155" stroke-width="0.5"/>
+  <line x1="320" y1="72" x2="320" y2="124" stroke="#334155" stroke-width="0.5"/>
+  <line x1="440" y1="72" x2="440" y2="124" stroke="#334155" stroke-width="0.5"/>
+  <line x1="560" y1="72" x2="560" y2="124" stroke="#334155" stroke-width="0.5"/>
+
+  <!-- Row 2: VGG-16 -->
+  <rect x="40" y="124" width="600" height="52" rx="0" fill="#0d2216"/>
+  <rect x="40" y="124" width="600" height="52" rx="0" fill="none" stroke="#334155" stroke-width="0.5"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" font-weight="500" fill="#e2e8f0" x="120" y="146" text-anchor="middle">VGG-16</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="10" fill="#94a3b8" x="120" y="164" text-anchor="middle">2014 · 138M params</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="14" font-weight="500" fill="#4ade80" x="240" y="152" text-anchor="middle">552 MB</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="14" font-weight="500" fill="#4ade80" x="360" y="152" text-anchor="middle">11.3 MB</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="16" font-weight="500" fill="#22c55e" x="480" y="154" text-anchor="middle">49×</text>
+  <rect x="567" y="135" width="66" height="26" rx="4" fill="#22c55e"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" font-weight="500" fill="#f8fafc" x="600" y="153" text-anchor="middle">&lt; 1%</text>
+
+  <!-- Column dividers row 2 -->
+  <line x1="200" y1="124" x2="200" y2="176" stroke="#334155" stroke-width="0.5"/>
+  <line x1="320" y1="124" x2="320" y2="176" stroke="#334155" stroke-width="0.5"/>
+  <line x1="440" y1="124" x2="440" y2="176" stroke="#334155" stroke-width="0.5"/>
+  <line x1="560" y1="124" x2="560" y2="176" stroke="#334155" stroke-width="0.5"/>
+
+  <!-- Methods row -->
+  <rect x="40" y="176" width="600" height="36" rx="0" fill="#0f172a" stroke="#334155" stroke-width="0.5"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="10" fill="#94a3b8" x="340" y="190" text-anchor="middle">Methods applied: iterative magnitude pruning + codebook weight quantization (8-bit centroids) + Huffman coding</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="10" fill="#64748b" x="340" y="206" text-anchor="middle">Accuracy measured: top-1 on ImageNet ILSVRC-2012</text>
+
+  <!-- Summary callout -->
+  <rect x="40" y="222" width="600" height="28" rx="6" fill="#1e1b4b"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" font-weight="500" fill="#f8fafc" x="340" y="241" text-anchor="middle">Three stacked techniques — 35–49× compression with under 1% accuracy degradation on both models</text>
+</svg>

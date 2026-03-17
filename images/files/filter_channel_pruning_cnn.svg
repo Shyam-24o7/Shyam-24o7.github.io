@@ -1,0 +1,66 @@
+<svg width="100%" viewBox="0 0 680 320" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <!-- Background -->
+  <rect width="680" height="320" fill="#1e293b"/>
+
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="13" font-weight="500" fill="#f8fafc" x="340" y="24" text-anchor="middle">Filter and channel pruning in CNNs</text>
+
+  <!-- Conv Layer N — filters as stacked rectangles -->
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" font-weight="500" fill="#e2e8f0" x="130" y="52" text-anchor="middle">Conv layer N</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="10" fill="#94a3b8" x="130" y="66" text-anchor="middle">4 filters → 4 output channels</text>
+
+  <!-- Filter 1 (bottom) -->
+  <rect x="60" y="200" width="130" height="28" rx="4" fill="#4f46e5" stroke="#6366f1" stroke-width="0.5"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="10" fill="#f8fafc" x="125" y="219" text-anchor="middle">Filter 1</text>
+  <!-- Filter 2 -->
+  <rect x="68" y="170" width="130" height="28" rx="4" fill="#4f46e5" stroke="#6366f1" stroke-width="0.5"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="10" fill="#f8fafc" x="133" y="189" text-anchor="middle">Filter 2</text>
+  <!-- Filter 3 — pruned (red) -->
+  <rect x="76" y="140" width="130" height="28" rx="4" fill="#7f1d1d" stroke="#ef4444" stroke-width="1.5"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="10" fill="#fca5a5" x="141" y="159" text-anchor="middle">Filter 3 ← PRUNED</text>
+  <!-- X mark -->
+  <line x1="180" y1="143" x2="200" y2="165" stroke="#ef4444" stroke-width="2"/>
+  <line x1="200" y1="143" x2="180" y2="165" stroke="#ef4444" stroke-width="2"/>
+  <!-- Filter 4 -->
+  <rect x="84" y="110" width="130" height="28" rx="4" fill="#818cf8" stroke="#6366f1" stroke-width="0.5"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="10" fill="#1e1b4b" x="149" y="129" text-anchor="middle">Filter 4</text>
+
+  <!-- Output channels annotation -->
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="10" fill="#94a3b8" x="90" y="246" text-anchor="start">4 output feature maps</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="10" fill="#94a3b8" x="90" y="260" text-anchor="start">one per filter</text>
+
+  <!-- Arrow -->
+  <line x1="230" y1="165" x2="290" y2="165" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="10" fill="#94a3b8" x="260" y="158" text-anchor="middle">prune filter</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="10" fill="#94a3b8" x="260" y="178" text-anchor="middle">propagates →</text>
+
+  <!-- Conv Layer N+1 — input slices -->
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" font-weight="500" fill="#e2e8f0" x="490" y="52" text-anchor="middle">Conv layer N+1</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="10" fill="#94a3b8" x="490" y="66" text-anchor="middle">Input channels match output of layer N</text>
+
+  <!-- Input slices: 4 channels, channel 3 also removed -->
+  <!-- Channel 1 slice -->
+  <rect x="310" y="200" width="150" height="28" rx="4" fill="#16a34a" stroke="#22c55e" stroke-width="0.5"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="10" fill="#f8fafc" x="385" y="219" text-anchor="middle">Input ch. 1</text>
+  <!-- Channel 2 -->
+  <rect x="318" y="170" width="150" height="28" rx="4" fill="#16a34a" stroke="#22c55e" stroke-width="0.5"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="10" fill="#f8fafc" x="393" y="189" text-anchor="middle">Input ch. 2</text>
+  <!-- Channel 3 — removed (matches pruned filter 3) -->
+  <rect x="326" y="140" width="150" height="28" rx="4" fill="#7f1d1d" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4 2"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="10" fill="#fca5a5" x="401" y="159" text-anchor="middle">Input ch. 3 ← removed</text>
+  <!-- Channel 4 -->
+  <rect x="334" y="110" width="150" height="28" rx="4" fill="#22c55e" stroke="#16a34a" stroke-width="0.5"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="10" fill="#0f172a" x="409" y="129" text-anchor="middle">Input ch. 4</text>
+
+  <!-- Coupled note -->
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="10" fill="#94a3b8" x="350" y="246" text-anchor="start">Input reduces from 4 → 3 channels</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="10" fill="#94a3b8" x="350" y="260" text-anchor="start">Both layers shrink together</text>
+
+  <!-- Result box -->
+  <rect x="60" y="278" width="560" height="28" rx="6" fill="#0d2216" stroke="#22c55e" stroke-width="0.5"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" fill="#4ade80" x="340" y="297" text-anchor="middle">Result: smaller dense tensors — real hardware speedup, no sparse format needed</text>
+</svg>

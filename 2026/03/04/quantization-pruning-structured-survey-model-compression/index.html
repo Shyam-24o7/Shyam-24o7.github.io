@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quantization and Pruning: A Structured Survey of Model Compression | Shyam-24o7</title>
+<meta name="description" content="Writing about computer architecture, hardware acceleration and the mathematics of efficient computation">
+
+<!-- Google Fonts: JetBrains Mono + Inter -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<!-- KaTeX -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
+
+<!-- Theme CSS -->
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+<meta name="generator" content="Hexo 8.1.1"></head>
+<body>
+  <!-- Scroll progress bar -->
+  <div id="scroll-progress"></div>
+
+  <header class="site-header">
+  <div class="container header-inner">
+    <a class="site-title" href="/">Shyam-24o7</a>
+    <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">&#9776;</button>
+    <nav class="site-nav" id="site-nav">
+      <a href="/">Home</a>
+      <a href="/archives">Archives</a>
+      <a href="/about">About</a>
+      <a href="/contact">Contact</a>
+    </nav>
+    <button class="search-btn" id="search-btn" aria-label="Search posts" title="Search (Ctrl+K)">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    </button>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle light/dark mode" title="Toggle light mode">
+      <span class="theme-icon">🌙</span>
+    </button>
+  </div>
+</header>
+
+
+  <!-- Search overlay -->
+  <div class="search-overlay" id="search-overlay" aria-hidden="true">
+    <div class="search-modal" role="dialog" aria-label="Search posts">
+      <div class="search-input-row">
+        <svg class="search-icon-inline" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="search-input" class="search-input" placeholder="Search posts, tags, content..." autocomplete="off" spellcheck="false">
+        <button class="search-close-btn" id="search-close" aria-label="Close">&#x2715;</button>
+      </div>
+      <div class="search-results" id="search-results">
+        <p class="search-hint">Start typing to search &nbsp;·&nbsp; <kbd>Esc</kbd> to close</p>
+      </div>
+    </div>
+  </div>
+
+  <main class="site-main">
+    <div class="container">
+      
+      <div class="main-content main-content--full">
+        <article class="post-full">
+  <header class="post-full-header">
+    <h1 class="post-full-title">Quantization and Pruning: A Structured Survey of Model Compression</h1>
+    <div class="post-meta">
+      <time datetime="2026-03-03T18:30:00.000Z">2026-03-04</time>
+      
+      <span class="updated">Updated: 2026-03-17</span>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <p><em>The weights don’t lie — most of them are just dead weight.</em></p>
+<hr>
+<p>If there’s one thing that becomes obvious once you start thinking seriously about deploying neural networks, it’s that scale is a trap. The models that researchers celebrate for benchmark records are routinely too large to run usefully on anything that isn’t a server rack. Language models with hundreds of billions of parameters. Vision transformers that barely fit in GPU memory. And the gap between what research produces and what actual hardware can run has been growing faster than anyone would like to admit.</p>
+<p><img src="/images/files/model_size_growth.svg" alt="Model size growth over time — AlexNet through LLaMA, parameter count on log scale"><br><em>From AlexNet’s 60M parameters to modern LLMs in the hundreds of billions. The gap between model size and edge hardware hasn’t closed — it’s widened.</em></p>
+<p>So the field developed compression techniques. The two most important ones — <strong>quantization</strong> and <strong>pruning</strong> — have been around for a while, but they’ve become genuinely central to how production ML systems work. Both of them are easy to describe at a high level and surprisingly subtle once you actually try to apply them, especially once you bring hardware into the picture.</p>
+<p>That’s the focus here: not just what these techniques are, but what they actually do to the numbers, why they work at all, when they fail, and how the hardware you’re targeting changes everything about how you should approach them. And by the end, you’ll see that the two techniques combined can take a 552MB model down to 11MB — with under 1% accuracy loss. That number is the whole motivation.</p>
+<h2 id="Why-Compression-Works-at-All"><a href="#Why-Compression-Works-at-All" class="headerlink" title="Why Compression Works at All"></a>Why Compression Works at All</h2><p>Before getting into the techniques, it’s worth asking the obvious question: why does any of this work? If you spent months training a huge model, why can you then throw away half the parameters or reduce every weight to 8 bits without the thing collapsing?</p>
+<p>The answer is <strong>overparameterization</strong>. Neural networks, particularly large ones, are almost always trained with far more parameters than the task mathematically requires. This is intentional — more parameters means a richer loss landscape, easier optimization, better generalization — but it also means that by the end of training, a significant portion of the model is either redundant or doing very little.</p>
+<p>The intuition from the <strong>lottery ticket hypothesis</strong> makes this concrete: hidden inside every large trained network, there exists a much smaller subnetwork that does most of the actual work. The big network is how you find that subnetwork. Once you have it, you don’t necessarily need the rest.</p>
+<p><img src="/images/files/lottery_ticket_subnetwork.svg" alt="Conceptual diagram — large dense network with a smaller sparse subnetwork highlighted inside it"><br><em>The lottery ticket idea: the winning ticket was always in there. Training the large network is how you find it.</em></p>
+<p>This doesn’t mean compression is free or easy — it absolutely isn’t — but it means there’s a fundamental reason to believe the information content of a trained model is much lower than its raw parameter count suggests. Quantization and pruning are two different ways of exploiting that fact.</p>
+<h2 id="Quantization"><a href="#Quantization" class="headerlink" title="Quantization"></a>Quantization</h2><h3 id="The-Core-Idea"><a href="#The-Core-Idea" class="headerlink" title="The Core Idea"></a>The Core Idea</h3><p>Every weight and activation in a standard neural network is stored as a 32-bit floating point number. FP32 gives you enormous dynamic range and precision: about 7 decimal digits of accuracy, values ranging from roughly 10⁻³⁸ to 10³⁸. It’s overkill for most of what a trained neural network actually needs.</p>
+<p><strong>Quantization</strong> replaces those FP32 values with lower-bit integers — typically INT8, sometimes INT4 or even lower. The gains are real and they compound: an INT8 model is 4× smaller in memory, requires 4× less memory bandwidth, and on hardware with native INT8 support, can run 2–4× faster. The trade-off is numerical precision, and understanding exactly what that costs is the whole art of quantization.</p>
+<p><img src="/images/files/fp32_vs_int8_numberline.svg" alt="FP32 vs INT8 — number line comparison showing dynamic range and representable values"><br><em>FP32 has enormous range but you’re almost never using most of it. INT8 gives you 256 distinct values — but within a well-chosen range, that’s often enough.</em></p>
+<p>The mapping from FP32 → INT8 requires choosing a <strong>scale factor</strong> and a <strong>zero point</strong> that define how the continuous real-valued range maps onto the discrete integer grid. This choice matters a lot. Too narrow a range and you clip extreme values. Too wide and you waste precision on a large range most of your weights don’t use. Getting the quantization parameters right is where most of the practical complexity lives.</p>
+<h3 id="Uniform-vs-Log-Quantization"><a href="#Uniform-vs-Log-Quantization" class="headerlink" title="Uniform vs Log Quantization"></a>Uniform vs Log Quantization</h3><p>The simplest approach is <strong>uniform quantization</strong>: the integer grid has evenly spaced levels across the chosen range. If you map [−1.0, 1.0] to INT8, each step is about 0.0078. Clean, simple, hardware-friendly, because uniform grids map naturally to integer arithmetic that ALUs already do well.</p>
+<p>The problem is that weight distributions aren’t uniform. After training, most weights cluster near zero with a few larger outliers. A uniform grid wastes resolution on the sparse tails and doesn’t give enough precision to the dense center.</p>
+<p><strong>Log quantization</strong> (or logarithmic quantization) addresses this by spacing the grid levels non-uniformly — denser near zero, sparser at larger magnitudes. This matches the actual shape of weight distributions better and can maintain accuracy at lower bit-widths than uniform would allow.</p>
+<p><img src="/images/files/uniform_vs_log_quantization.svg" alt="Uniform vs log quantization grids — same bit-width, different level spacing"><br><em>Uniform gives equal precision everywhere. Log gives more precision where the weights actually are. The difference matters at very low bit-widths.</em></p>
+<h3 id="STLQ"><a href="#STLQ" class="headerlink" title="STLQ"></a>STLQ</h3><p><strong>Symmetric Two-Level Quantization (STLQ)</strong> pushes this idea further by using a two-tier grid: a fine-grained grid near zero for the dense cluster of small weights, and a coarser grid further out for the large-magnitude outliers. Essentially you’re admitting that the distribution has two distinct regions and optimizing the grid for both simultaneously rather than compromising.</p>
+<p><img src="/images/files/stlq_grid.svg" alt="STLQ grid — fine resolution near zero, coarser resolution at the tails"><br><em>Two levels, one grid. STLQ handles outlier weights without sacrificing precision on the majority of the distribution.</em></p>
+<h3 id="Post-Training-Quantization-vs-Quantization-Aware-Training"><a href="#Post-Training-Quantization-vs-Quantization-Aware-Training" class="headerlink" title="Post-Training Quantization vs Quantization-Aware Training"></a>Post-Training Quantization vs Quantization-Aware Training</h3><p>So you have a trained model and you want to quantize it. Two main paths.</p>
+<p><strong>Post-Training Quantization (PTQ)</strong> is the simpler one: take the trained model, run calibration data through it to measure activation distributions, choose good scale factors, and quantize everything. No retraining. This works well at INT8 for most networks — the accuracy degradation is small enough to be acceptable. It’s also fast and cheap, which is why it’s the default when you just want a deployment-ready model without a lot of effort.</p>
+<p>The calibration step deserves more attention than it usually gets. You run a small representative dataset — a few hundred to a few thousand samples — through the model and collect histograms of the activation values at every layer. From these histograms, you determine the dynamic range for each activation tensor: the min and max values that the quantized grid needs to cover. This is where the scale factor and zero point are computed. Get the range wrong — too wide, and you waste precision on values the activations never reach; too narrow, and outlier activations clip and introduce significant error.</p>
+<p><img src="/images/files/ptq_calibration_pipeline.svg" alt="PTQ calibration pipeline — representative data flowing through the model, activation histograms collected per layer, scale factors computed"><br><em>PTQ in practice: run calibration data, collect histograms, compute scale factors. No gradient descent involved.</em></p>
+<p>There are two main variants: <strong>static quantization</strong> computes all scale factors offline during calibration and bakes them in before deployment. <strong>Dynamic quantization</strong> computes the activation range at runtime, per inference — no calibration needed, but with some overhead. Static is faster at inference; dynamic is more accurate for inputs whose activation distributions vary widely. Most deployment pipelines use static.</p>
+<p>Another important choice is <strong>per-tensor vs per-channel quantization</strong>. Per-tensor uses a single scale factor for the entire weight matrix. Per-channel uses a separate scale factor for each output channel (each row of the weight matrix). Per-channel is more accurate — different filters in a convolution can have very different weight ranges — but slightly more complex to implement. For most networks, per-channel gives a meaningful accuracy improvement at the same bit-width with no additional inference cost on good hardware.</p>
+<p><img src="/images/files/per_tensor_vs_per_channel.svg" alt="Per-tensor vs per-channel quantization — one scale factor for the whole matrix vs a separate scale per row"><br><em>Per-channel lets each filter live on its own quantization grid. The overhead is minimal; the accuracy gain can be significant.</em></p>
+<p>The problem arises below INT8. At INT4, you have only 16 distinct values per tensor. If the model has even a few activation outliers — values that sit far out from the distribution’s center — they either force the scale factor to be large (wasting all precision on the center of the distribution) or get clipped entirely. Either way, the quantization error grows large enough to hurt significantly. And since PTQ never updates the weights, there’s no recovery mechanism. The model just degrades.</p>
+<p><strong>Quantization-Aware Training (QAT)</strong> does retraining. The idea is to simulate quantization during training: insert <strong>fake quantization nodes</strong> into the graph that, in the forward pass, clamp values to the quantization range and round them to the nearest representable value — but store everything as FP32 so gradients can flow. The network sees quantized values throughout forward passes and adjusts its weights accordingly. Activations learn to stay in-range. Weights learn distributions that are friendlier to low-bit representations.</p>
+<p><img src="/images/files/qat_training_loop.svg" alt="QAT training loop — pre-trained model with fake quantization nodes inserted, fine-tuned with FP32 gradients"><br><em>QAT inserts fake quantization into the forward pass. The model experiences the precision loss during training and learns to live with it.</em></p>
+<p>What changes in the model as a result of QAT is subtle but important. Weights that were broadly distributed across a large range tend to cluster tighter. Activations develop implicit regularization that suppresses outliers — because any activation that strays far gets clipped, and the model learns that clipping hurts the loss. By the end of QAT fine-tuning, the weight and activation distributions look very different from the original: they’re shaped for the quantization grid rather than against it.</p>
+<p>The typical QAT recipe: start from a pre-trained FP32 model (don’t train from scratch — it’s slower and usually worse), insert fake quantization nodes for both weights and activations, fine-tune for a fraction of the original training time (10–20% of epochs is usually enough), then quantize for real and export. QAT consistently outperforms PTQ at aggressive bit-widths. The cost is obvious — you’re doing training, which is expensive.</p>
+<p><img src="/images/files/qat_vs_ptq_accuracy_curve.svg" alt="QAT vs PTQ accuracy comparison — accuracy vs bit-width showing QAT advantage at INT4 and below"><br><em>At INT8, PTQ and QAT are close. At INT4 and below, QAT pulls ahead significantly. The further you push the bit-width, the more the training-time adaptation matters.</em></p>
+<h3 id="The-STE-Problem"><a href="#The-STE-Problem" class="headerlink" title="The STE Problem"></a>The STE Problem</h3><p>There’s a technical wrinkle that makes QAT non-trivial: the quantization function (round to nearest integer) has a gradient of zero almost everywhere, and undefined gradient at the discontinuities. You literally cannot backpropagate through it.</p>
+<p>The fix is the <strong>Straight-Through Estimator (STE)</strong>: in the backward pass, pretend the quantization didn’t happen. Pass the gradient through as if the operation were an identity function. This is, charitably, a hack. It’s not mathematically justified. But empirically it works really well, and it’s the standard approach everywhere QAT is used.</p>
+<p><img src="/images/files/ste_diagram.svg" alt="STE diagram — forward pass through discrete quantization, backward pass uses identity gradient"><br><em>Forward: discrete rounding. Backward: pretend it’s linear. The STE is a deliberate lie that happens to work.</em></p>
+<p>The intuition for why STE works is roughly that the gradient is giving the optimizer a direction to move in weight space, and even if the magnitude is wrong, the direction is usually right enough to make progress. In practice, STE-based QAT converges reliably and produces well-quantized models.</p>
+<h2 id="Pruning"><a href="#Pruning" class="headerlink" title="Pruning"></a>Pruning</h2><h3 id="What-Pruning-Actually-Is"><a href="#What-Pruning-Actually-Is" class="headerlink" title="What Pruning Actually Is"></a>What Pruning Actually Is</h3><p>Pruning starts from a similar observation as quantization — most of the model is doing less than you’d think — but attacks it differently. Rather than reducing the precision of every weight, pruning zeroes out the weights that matter least and removes them entirely.</p>
+<p>After training, the vast majority of weights in a typical deep network are small. Close to zero. Not actually contributing much to the computation. The idea is: find them, remove them, compress the result.</p>
+<p><img src="/images/files/dense_vs_sparse_matrix.svg" alt="Dense weight matrix vs sparse weight matrix after pruning — most entries become zero"><br><em>Left: the weight matrix as trained. Right: after pruning — most values gone. In theory, less computation. In practice, it depends enormously on what hardware you’re running on.</em></p>
+<p>Simple enough premise. But here’s where it gets complicated, and where a lot of intuitive thinking about pruning goes wrong.</p>
+<h3 id="When-Pruning-Doesn’t-Actually-Help-—-The-GPU-Sparsity-Problem"><a href="#When-Pruning-Doesn’t-Actually-Help-—-The-GPU-Sparsity-Problem" class="headerlink" title="When Pruning Doesn’t Actually Help — The GPU Sparsity Problem"></a>When Pruning Doesn’t Actually Help — The GPU Sparsity Problem</h3><p>The naive expectation is: fewer non-zero weights &#x3D; less computation &#x3D; faster model. This is true in principle and often false in practice, especially on GPUs.</p>
+<p>Modern GPUs are optimized to do one thing extremely well: <strong>dense matrix multiplication</strong>. Libraries like cuBLAS and cuDNN, and the Tensor Cores on NVIDIA GPUs, are all built around the assumption that the data being multiplied is dense. The execution units operate on fixed-size blocks — 16×16, or larger. They don’t have a fast path for “some of these values happen to be zero.” They just process all of them.</p>
+<p>What this means is that a weight matrix that’s 70% zeros doesn’t run in 30% of the time. It runs in the same time as a 100%-full matrix, because the hardware executes the full dense matmul either way. The zeros are computed; they’re just multiplied by zero, which the hardware doesn’t know to skip.</p>
+<p><img src="/images/files/gpu_dense_vs_sparse_matmul.svg" alt="Dense matmul vs sparse matmul on GPU — memory access and execution pattern comparison"><br><em>The GPU doesn’t care that most of your weights are zero. It loads the full matrix, executes all the multiplies, and discards the zeros. Sparsity is invisible to the hardware.</em></p>
+<p>This is the core insight that the <strong>Scalpel</strong> paper made very concrete: <strong>sparse ≠ fast</strong> on conventional GPU hardware. The sparsity has to be the right kind of sparsity for the target hardware, otherwise you’re paying all the memory bandwidth cost of the full matrix while getting none of the computational savings.</p>
+<p>This doesn’t mean pruning is useless — it’s extremely useful in the right contexts. But it means you need to think carefully about what kind of sparsity you’re creating and whether your target hardware can exploit it.</p>
+<h3 id="Weight-Pruning-vs-Structured-Node-Pruning"><a href="#Weight-Pruning-vs-Structured-Node-Pruning" class="headerlink" title="Weight Pruning vs Structured &#x2F; Node Pruning"></a>Weight Pruning vs Structured &#x2F; Node Pruning</h3><p>This is the central architectural choice in any pruning strategy, and it’s worth unpacking carefully because the right answer depends entirely on where you’re deploying.</p>
+<p><strong>Weight pruning</strong> (also called unstructured pruning) removes individual weights wherever they fall below some threshold, regardless of their position in the matrix. The most common criterion is simple magnitude: compute the absolute value of every weight, sort them, remove the bottom k%. The intuition is straightforward — small-magnitude weights have small effect on the output, so removing them shouldn’t hurt much.</p>
+<p><img src="/images/files/magnitude_pruning_threshold.svg" alt="Magnitude-based weight pruning — weight distribution with a threshold line, values below removed"><br><em>Magnitude pruning: sort by |w|, remove the tail. Simple, effective, and produces unstructured sparsity.</em></p>
+<p>More sophisticated criteria go beyond magnitude. <strong>Gradient-sensitivity pruning</strong> scores each weight by its contribution to the loss: weights where the product of gradient and weight magnitude is small are less important. This is a first-order Taylor approximation of how much the loss would change if you zeroed out that weight. It’s more principled than pure magnitude but more expensive — you need to do a backward pass to get the gradients.</p>
+<p>The result of unstructured pruning is a weight matrix that looks like the original: same shape, same dimensions, but with zeros scattered irregularly throughout. Conceptually clean — you’ve removed the individually least-important parameters — but the resulting sparsity pattern doesn’t map onto any hardware primitive. The matrix is still the same shape. You still load the same memory. The hardware still processes it the same way.</p>
+<p><img src="/images/files/irregular_sparsity_pattern.svg" alt="Irregular sparsity pattern after weight pruning — zeros scattered with no alignment"><br><em>The sparsity after weight pruning has no structure the hardware can exploit. Each zero is in a random position. The full matrix still gets loaded and multiplied.</em></p>
+<p><strong>Structured pruning</strong> is a fundamentally different approach. Instead of removing individual weights, you remove entire structural units: neurons in fully-connected layers, or filters and channels in convolutional layers. The resulting network is smaller but still perfectly dense.</p>
+<p><strong>Node pruning</strong> in fully-connected layers means removing entire neurons. Each neuron corresponds to a row in one weight matrix and a column in the next layer’s weight matrix. Remove a neuron and you remove that row and that column simultaneously — the two matrices shrink by one unit. The remaining network is dense and smaller. A layer that had 512 neurons now has, say, 384. The weight matrix is genuinely 384×N instead of 512×N with some rows zeroed out.</p>
+<p><img src="/images/files/node_pruning_fc_layer.svg" alt="Node pruning in a fully-connected layer — removing a neuron removes a row from W₁ and a column from W₂"><br><em>Remove a neuron: the row disappears from the current layer’s matrix and the column disappears from the next. The resulting matrices are smaller and still dense.</em></p>
+<p>How do you decide which neurons to remove? Weight norms are one criterion — neurons whose outgoing weight vector has small L2-norm are contributing little to downstream activations. Activation statistics are another — if a neuron’s output is near-zero across a large sample of inputs, it’s not firing, and you can likely remove it safely.</p>
+<p><strong>Filter and channel pruning</strong> in convolutional networks is the same idea, applied to conv layers. A convolutional layer produces a set of output feature maps — one per filter. Remove a filter and you remove an entire output channel. But here’s the structural coupling: that output channel becomes an input channel to the next conv layer. Remove the filter from layer N, and you also remove the corresponding input channel slice from layer N+1’s weight tensor. Both layers shrink together.</p>
+<p><img src="/images/files/filter_channel_pruning_cnn.svg" alt="Filter pruning in a CNN — removing a filter removes an output channel from conv layer N and an input channel from conv layer N+1"><br><em>Filter pruning propagates through the network: remove a filter, and the next layer’s input shrinks to match. The result is a thinner network — same depth, smaller width.</em></p>
+<p>A popular criterion for filter pruning is the <strong>L1-norm of the filter weights</strong>: smaller L1-norm filters contribute less to the output magnitude on average, so remove those first. The <strong>network slimming</strong> approach (Liu et al., 2017) adds a twist: instead of using weight norms directly, it uses the scaling parameters of Batch Normalization layers as importance scores. BN’s γ parameter scales the normalized output of each channel — a small γ means the channel’s contribution is being suppressed. Training with L1 regularization on γ naturally drives unimportant channels toward zero, and those are the ones you prune.</p>
+<p><img src="/images/files/network_slimming_bn_scaling.svg" alt="Network slimming — BN scaling factors γ as importance scores, channels with γ ≈ 0 pruned"><br><em>Network slimming uses BN’s γ as a learned importance gate. Channels that regularization suppressed are the ones removed.</em></p>
+<p>The trade-off between unstructured and structured pruning is accuracy vs actual speedup. Unstructured pruning can remove 90%+ of weights with very small accuracy loss — you’re making very surgical individual decisions. Structured pruning is coarser: removing a whole neuron or filter loses all of its functionality at once, which is a bigger shock to the network. At the same compression ratio, structured pruning typically hurts accuracy more.</p>
+<p>But structured pruning is the only one that reliably makes models run faster on standard hardware. A fully-connected layer with 384 neurons runs faster than one with 512 neurons. A conv layer with 128 filters runs faster than one with 256 filters. No sparse format, no special hardware needed — just a smaller dense tensor.</p>
+<p><img src="/images/files/structured_vs_unstructured_accuracy_tradeoff.svg" alt="Compression ratio vs accuracy tradeoff — unstructured pruning vs structured pruning curves"><br><em>Unstructured wins on accuracy at a given compression ratio. Structured wins on actual runtime speedup. The right choice depends on your deployment target.</em></p>
+<h3 id="The-GPU-Sparsity-Problem-in-Depth"><a href="#The-GPU-Sparsity-Problem-in-Depth" class="headerlink" title="The GPU Sparsity Problem, in Depth"></a>The GPU Sparsity Problem, in Depth</h3><p>The Scalpel paper is worth understanding in detail because it makes the hardware dependency explicit in a way that’s easy to underestimate.</p>
+<p>GPUs execute operations across <strong>SIMD (Single Instruction, Multiple Data)</strong> units — large groups of lanes that all execute the same instruction simultaneously. On NVIDIA hardware, the fundamental unit is a <strong>warp</strong>: 32 threads executing in lockstep. For a sparse weight to result in skipping actual computation, you’d need <em>all</em> threads in the group to be processing a zero at the same time. If even one thread has a non-zero weight, the whole warp executes.</p>
+<p><img src="/images/files/simd_sparsity_groups.svg" alt="SIMD group diagram — one non-zero weight forces the whole group to execute"><br><em>If any lane in the SIMD group has a non-zero weight, the group executes. Partial-group sparsity is wasted sparsity.</em></p>
+<p>What Scalpel showed is that to get actual compute savings from pruning on GPU hardware, you need <strong>SIMD-aligned sparsity</strong>: zero out weights in complete hardware-aligned groups, not individually. Prune in chunks that match the hardware’s execution granularity. Only when full groups are zero does the hardware get to skip them.</p>
+<p>This is a much stricter constraint than “prune the smallest weights.” It means the pruning algorithm itself has to be hardware-aware. The threshold for which weights to remove has to be informed by group boundaries in the target execution unit, not just individual weight magnitudes.</p>
+<p>The further implication: the right pruning strategy for a GPU is different from the right strategy for a CPU (which can exploit scalar sparsity more easily), which is different from the right strategy for a specialized NPU or DSP. There is no single “correct” pruning approach that works well everywhere.</p>
+<h3 id="Hardware-Aware-Pruning"><a href="#Hardware-Aware-Pruning" class="headerlink" title="Hardware-Aware Pruning"></a>Hardware-Aware Pruning</h3><p>The Scalpel insight generalises into a broader principle: <strong>match the granularity of your pruning to the parallelism model of your target hardware</strong>.</p>
+<p><img src="/images/files/pruning_granularity_hardware.svg" alt="Pruning granularity vs target hardware — weight-level for CPUs, SIMD-group for GPUs, filter-level for edge NPUs"><br><em>Different hardware, different pruning sweet spots. The same compression ratio can be useful on one platform and useless on another.</em></p>
+<p>CPUs, with their scalar and vector units and good support for irregular memory access, can exploit fine-grained sparsity more effectively than GPUs. Edge accelerators and NPUs often work best with structured pruning at the filter or channel level because they’re designed around fixed-size dense tensor operations. FPGAs can be configured to exploit custom sparsity patterns but require the pruning structure to match whatever hardware accelerator you’ve synthesized.</p>
+<p>The practical takeaway is that if you’re pruning a model for deployment, you should know your target hardware before you choose your pruning strategy, not after. Pruning first and then asking whether it runs faster is backwards. The hardware constraint should shape the pruning strategy from the start.</p>
+<h3 id="Iterative-Pruning-and-the-Fine-Tuning-Cycle"><a href="#Iterative-Pruning-and-the-Fine-Tuning-Cycle" class="headerlink" title="Iterative Pruning and the Fine-Tuning Cycle"></a>Iterative Pruning and the Fine-Tuning Cycle</h3><p>One-shot pruning — train a model, prune 70% of the weights, deploy — reliably destroys accuracy. The network can’t adapt to the loss of that much capacity all at once. The solution is iteration.</p>
+<p>The standard approach is an iterative cycle: train fully → prune a fraction → fine-tune to recover accuracy → prune more → fine-tune again → repeat. Each round pushes the sparsity higher while giving the remaining weights time to compensate for what was removed. The network redistributes its representational capacity as it shrinks.</p>
+<p><img src="/images/files/iterative_pruning_cycle.svg" alt="Iterative pruning cycle — accuracy vs sparsity curve across multiple prune-and-fine-tune rounds"><br><em>Each prune-fine-tune round moves right on the sparsity axis. Accuracy dips on prune, recovers on fine-tune. With enough rounds, you can reach high sparsity without catastrophic accuracy loss.</em></p>
+<p>The cost is obvious: this is expensive. Multiple rounds of fine-tuning on a large model adds up. The payoff is that you can reach sparsity levels — often 90% or above — that one-shot pruning can’t touch while maintaining comparable accuracy. For production deployments where the trained model will run billions of inferences, the training cost of getting a good compressed model is usually worth it.</p>
+<p>There’s an interesting connection here to the lottery ticket hypothesis: each fine-tuning round is essentially helping the surviving weights figure out that they’re now the whole network. The remaining parameters update to compensate for what’s gone.</p>
+<h2 id="Deep-Compression-Putting-It-Together"><a href="#Deep-Compression-Putting-It-Together" class="headerlink" title="Deep Compression: Putting It Together"></a>Deep Compression: Putting It Together</h2><p>The most striking demonstration of what quantization and pruning can do together is the <strong>Deep Compression</strong> pipeline from Han et al. (ICLR 2016). It chains three operations in sequence: pruning, then quantization, then Huffman coding.</p>
+<p>Stage one: prune. Remove small-magnitude weights iteratively with fine-tuning until you’ve achieved high sparsity. At this point the model is sparse but the surviving weights are still FP32.</p>
+<p>Stage two: quantize. Apply quantization to the surviving weights, grouping them into clusters and replacing each weight with a centroid index. This is essentially vector quantization — the weights are clustered, and instead of storing each weight, you store cluster indices and a shared codebook. The non-zero weights now take far fewer bits to represent.</p>
+<p>Stage three: Huffman coding. The cluster indices aren’t uniformly distributed — some centroids appear much more frequently than others. Huffman coding assigns shorter bit sequences to common indices and longer ones to rare ones, exploiting the non-uniform distribution for an additional compression boost.</p>
+<p><img src="/images/files/deep_compression_pipeline.svg" alt="Deep Compression three-stage pipeline — pruning, quantization, Huffman coding with compression ratios at each stage"><br><em>Each stage handles a different source of redundancy: pruning handles structural redundancy, quantization handles precision redundancy, Huffman coding handles statistical redundancy in the codes.</em></p>
+<p>The results are striking. AlexNet compressed 35× — from 240MB down to 6.9MB. VGG-16 compressed 49× — from 552MB down to 11.3MB. The top-1 accuracy change across both models is under 1%. You’re looking at a 95–98% reduction in model size for a less-than-1% accuracy cost. That number is worth sitting with, because it’s the kind of result that makes compression feel less like a tradeoff and more like recovering something that was always there.</p>
+<p><img src="/images/files/deep_compression_results_table.svg" alt="Compression results — baseline vs Deep Compression model size and accuracy for AlexNet and VGG-16"><br><em>AlexNet: 240MB → 6.9MB. VGG-16: 552MB → 11.3MB. Under 1% accuracy loss on both. Three stacked techniques delivering what none of them could alone.</em></p>
+<p><img src="/images/files/deep_compression_size_comparison.svg" alt="Model size before and after Deep Compression — side-by-side bar chart for AlexNet and VGG-16"><br><em>The size difference is hard to overstate. A 240MB model that has to live in flash memory on an edge device suddenly becomes practical at 7MB.</em></p>
+<p>What makes Deep Compression elegant is that each stage targets a different type of redundancy. Pruning removes structurally redundant parameters. Quantization removes precision redundancy — you don’t need full FP32 for what the remaining weights are doing. Huffman coding removes statistical redundancy in the resulting representation. They don’t compete with each other. They stack.</p>
+<h2 id="What-to-Take-Away"><a href="#What-to-Take-Away" class="headerlink" title="What to Take Away"></a>What to Take Away</h2><p>Quantization is the easier win. PTQ at INT8 is almost always safe, has minimal accuracy cost, and requires nothing more than calibration data and a good quantization implementation. For anything below INT8, QAT gives you meaningfully better results at the cost of a training run. The STE makes this tractable. If you’re deploying a model and you’re not quantizing it, you’re leaving significant efficiency on the table.</p>
+<p>Pruning is more hardware-dependent than most people expect. Unstructured weight pruning achieves great compression ratios but doesn’t translate to runtime speedup on GPU hardware unless the sparsity is very high (&gt;95%) or you have specialized sparse acceleration support. Structured pruning gives real speedups on real hardware but is coarser and hurts accuracy more at the same compression level. The right choice depends on your target hardware and your tolerance for accuracy degradation. Hardware-aware pruning strategies — matching granularity to the hardware’s parallelism model — are the direction that gets you actual performance gains, not just smaller model files.</p>
+<p>And the two techniques compose, which is the point of Deep Compression. Pruning and quantization aren’t alternatives. They attack different redundancies. Stack them properly and the gains multiply.</p>
+<p>The deeper takeaway is one that keeps coming up whenever hardware is involved: the physics of the machine you’re running on constrains what “better” actually means. A 90%-sparse model is not obviously better than a 50%-sparse model if the hardware can’t exploit the extra sparsity. Compression ratio is not the same thing as speedup. Understanding that gap — and designing around it — is what separates good compression from compression that actually runs fast.</p>
+<h2 id="Why-This-Stuff-Is-Worth-Caring-About"><a href="#Why-This-Stuff-Is-Worth-Caring-About" class="headerlink" title="Why This Stuff Is Worth Caring About"></a>Why This Stuff Is Worth Caring About</h2><p>I want to be honest about why I find model compression interesting beyond the technical details. The benchmark culture in ML tends to treat model quality as the only thing that matters. SOTA accuracy on ImageNet, perplexity on common crawl, whatever the current leaderboard is. And that framing makes compression look like a second-class concern — something you do after the real work is done.</p>
+<p>But the constraint isn’t going away. Edge devices, mobile phones, microcontrollers, embedded sensors — the hardware that actually reaches people at scale is resource-constrained in a way that datacenter GPUs aren’t. A model that achieves 2% higher accuracy but requires 4× more memory isn’t better for most real-world deployment scenarios. It’s just bigger.</p>
+<p>Anyway, I realize this got long — but I think it had to, because the practical details here are where the real understanding lives. If you’re trying to actually compress a model and deploy it, the high-level description isn’t enough. You need to know why the GPU doesn’t care about your sparsity, and what to do about it.</p>
+<p>If you made it this far: hope it was worth it.</p>
+<hr>
+<p><strong>Further reading</strong></p>
+<ul>
+<li>Han, Mao &amp; Dally (2016), <em>Deep Compression</em> — the ICLR paper, start here</li>
+<li>Nagel et al. (2021), <em>A White Paper on Neural Network Quantization</em> — thorough and practical</li>
+</ul>
+<hr>
+<p><em>— Shyam-24o7</em></p>
+
+  </div>
+
+  <footer class="post-full-footer">
+    
+    <div class="post-tags">
+      <span class="tags-label">Tags:</span>
+      
+      <a href="/tags/Hardware/" class="tag-pill">Hardware</a>
+      
+      <a href="/tags/AI-ML/" class="tag-pill">AI/ML</a>
+      
+      <a href="/tags/Quantization/" class="tag-pill">Quantization</a>
+      
+    </div>
+    
+    <div class="post-nav">
+      
+      <a href="/2026/02/28/tradeoffs-core-essence-hardware-optimization/" class="post-nav-link prev-post">&larr; Tradeoffs: The Core Essence of Hardware Optimization</a>
+      
+      
+      <a href="/2026/03/06/inside-the-gpu-cuda-memory-architecture-and-hierarchy/" class="post-nav-link next-post">Inside the GPU: CUDA Memory Architecture and Hierarchy &rarr;</a>
+      
+    </div>
+  </footer>
+</article>
+
+      </div>
+      
+    </div>
+  </main>
+
+  <footer class="site-footer">
+  <div class="container">
+    <p>&copy; 2026 Shyam-24o7</p>
+  </div>
+</footer>
+
+
+  <!-- Scroll-to-top button -->
+  <button id="scroll-top" aria-label="Back to top">&#8593;</button>
+
+  <!-- Search index (embedded, no extra package needed) -->
+  <script>
+  window.__searchIndex = [{"title":"Ahead of the Pipeline: A Deep Dive into Prefetching Techniques","path":"/2026/03/15/ahead-of-the-pipeline-a-deep-dive-into-prefetching/","date":"2026-03-15","tags":["Computer Architecture","Hardware"],"excerpt":""},{"title":"Inside the GPU: CUDA Memory Architecture and Hierarchy","path":"/2026/03/06/inside-the-gpu-cuda-memory-architecture-and-hierarchy/","date":"2026-03-06","tags":["Computer Architecture","GPU","Systems"],"excerpt":""},{"title":"Numerical Representations in Computing: IEEE 754 Floating-Point and Posit Arithmetic","path":"/2026/03/08/numerical-representations-ieee754-and-posit-arithmetic/","date":"2026-03-08","tags":["Computer Architecture","Hardware"],"excerpt":""},{"title":"Quantization and Pruning: A Structured Survey of Model Compression","path":"/2026/03/04/quantization-pruning-structured-survey-model-compression/","date":"2026-03-04","tags":["Hardware","AI/ML","Quantization"],"excerpt":"The weights don’t lie — most of them are just dead weight. If there’s one thing that becomes obvious once you start thinking seriously about deploying neural networks, it’s that scale is a trap. The models that researchers celebrate for benchmark records are routinely too large to run usefully on anything that isn’t a server rack. Language models with hundreds of billions of parameters. Vision transformers that barely fit in GPU memory. And the gap between what research produces and what actual "},{"title":"Tradeoffs: The Core Essence of Hardware Optimization","path":"/2026/02/28/tradeoffs-core-essence-hardware-optimization/","date":"2026-02-28","tags":["Computer Architecture","Hardware"],"excerpt":"Everything in hardware is a negotiation — and that’s exactly why it’s beautiful. If there’s one thing studying computer architecture has genuinely rewired in how I think, it’s this: there is no perfect design . Every single hardware decision you make is a negotiation. You want more performance? Great….pay with power. Want to save area? Sure… watch your latency climb. Want to go faster? Hope you’re not memory-bound, because the memory wall does not care about your ambitions. And this isn’t some p"}];
+  </script>
+
+  
+<script src="/js/main.js"></script>
+
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof renderMathInElement !== 'undefined') {
+        renderMathInElement(document.body, {
+          delimiters: [
+            { left: "$$",  right: "$$",  display: true  },
+            { left: "\\[", right: "\\]", display: true  },
+            { left: "$",   right: "$",   display: false },
+            { left: "\\(", right: "\\)", display: false }
+          ],
+          throwOnError: false
+        });
+      }
+    });
+  </script>
+</body>
+</html>

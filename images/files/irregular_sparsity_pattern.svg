@@ -1,0 +1,69 @@
+<svg width="100%" viewBox="0 0 680 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="680" height="300" fill="#1e293b"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="13" font-weight="500" fill="#f8fafc" x="340" y="24" text-anchor="middle">Unstructured sparsity — irregular zero pattern</text>
+
+  <!-- 10×4 weight matrix showing random sparsity -->
+  <!-- Row 1 (y=44): active at cols 1,3,7,9 -->
+  <rect x="60" y="44" width="46" height="38" rx="2" fill="#4f46e5" stroke="#1e293b" stroke-width="1"/>
+  <rect x="108" y="44" width="46" height="38" rx="2" fill="#334155" stroke="#1e293b" stroke-width="1"/>
+  <rect x="156" y="44" width="46" height="38" rx="2" fill="#6366f1" stroke="#1e293b" stroke-width="1"/>
+  <rect x="204" y="44" width="46" height="38" rx="2" fill="#334155" stroke="#1e293b" stroke-width="1"/>
+  <rect x="252" y="44" width="46" height="38" rx="2" fill="#334155" stroke="#1e293b" stroke-width="1"/>
+  <rect x="300" y="44" width="46" height="38" rx="2" fill="#334155" stroke="#1e293b" stroke-width="1"/>
+  <rect x="348" y="44" width="46" height="38" rx="2" fill="#818cf8" stroke="#1e293b" stroke-width="1"/>
+  <rect x="396" y="44" width="46" height="38" rx="2" fill="#334155" stroke="#1e293b" stroke-width="1"/>
+  <rect x="444" y="44" width="46" height="38" rx="2" fill="#4f46e5" stroke="#1e293b" stroke-width="1"/>
+  <rect x="492" y="44" width="46" height="38" rx="2" fill="#334155" stroke="#1e293b" stroke-width="1"/>
+
+  <!-- Row 2 (y=84): active at cols 2,5,8 -->
+  <rect x="60" y="84" width="46" height="38" rx="2" fill="#334155" stroke="#1e293b" stroke-width="1"/>
+  <rect x="108" y="84" width="46" height="38" rx="2" fill="#6366f1" stroke="#1e293b" stroke-width="1"/>
+  <rect x="156" y="84" width="46" height="38" rx="2" fill="#334155" stroke="#1e293b" stroke-width="1"/>
+  <rect x="204" y="84" width="46" height="38" rx="2" fill="#334155" stroke="#1e293b" stroke-width="1"/>
+  <rect x="252" y="84" width="46" height="38" rx="2" fill="#4f46e5" stroke="#1e293b" stroke-width="1"/>
+  <rect x="300" y="84" width="46" height="38" rx="2" fill="#334155" stroke="#1e293b" stroke-width="1"/>
+  <rect x="348" y="84" width="46" height="38" rx="2" fill="#334155" stroke="#1e293b" stroke-width="1"/>
+  <rect x="396" y="84" width="46" height="38" rx="2" fill="#818cf8" stroke="#1e293b" stroke-width="1"/>
+  <rect x="444" y="84" width="46" height="38" rx="2" fill="#334155" stroke="#1e293b" stroke-width="1"/>
+  <rect x="492" y="84" width="46" height="38" rx="2" fill="#334155" stroke="#1e293b" stroke-width="1"/>
+
+  <!-- Row 3 (y=124): active at cols 1,4,6,10 -->
+  <rect x="60" y="124" width="46" height="38" rx="2" fill="#818cf8" stroke="#1e293b" stroke-width="1"/>
+  <rect x="108" y="124" width="46" height="38" rx="2" fill="#334155" stroke="#1e293b" stroke-width="1"/>
+  <rect x="156" y="124" width="46" height="38" rx="2" fill="#334155" stroke="#1e293b" stroke-width="1"/>
+  <rect x="204" y="124" width="46" height="38" rx="2" fill="#4f46e5" stroke="#1e293b" stroke-width="1"/>
+  <rect x="252" y="124" width="46" height="38" rx="2" fill="#334155" stroke="#1e293b" stroke-width="1"/>
+  <rect x="300" y="124" width="46" height="38" rx="2" fill="#6366f1" stroke="#1e293b" stroke-width="1"/>
+  <rect x="348" y="124" width="46" height="38" rx="2" fill="#334155" stroke="#1e293b" stroke-width="1"/>
+  <rect x="396" y="124" width="46" height="38" rx="2" fill="#334155" stroke="#1e293b" stroke-width="1"/>
+  <rect x="444" y="124" width="46" height="38" rx="2" fill="#334155" stroke="#1e293b" stroke-width="1"/>
+  <rect x="492" y="124" width="46" height="38" rx="2" fill="#4f46e5" stroke="#1e293b" stroke-width="1"/>
+
+  <!-- Row 4 (y=164): active at cols 3,7 -->
+  <rect x="60" y="164" width="46" height="38" rx="2" fill="#334155" stroke="#1e293b" stroke-width="1"/>
+  <rect x="108" y="164" width="46" height="38" rx="2" fill="#334155" stroke="#1e293b" stroke-width="1"/>
+  <rect x="156" y="164" width="46" height="38" rx="2" fill="#6366f1" stroke="#1e293b" stroke-width="1"/>
+  <rect x="204" y="164" width="46" height="38" rx="2" fill="#334155" stroke="#1e293b" stroke-width="1"/>
+  <rect x="252" y="164" width="46" height="38" rx="2" fill="#334155" stroke="#1e293b" stroke-width="1"/>
+  <rect x="300" y="164" width="46" height="38" rx="2" fill="#334155" stroke="#1e293b" stroke-width="1"/>
+  <rect x="348" y="164" width="46" height="38" rx="2" fill="#818cf8" stroke="#1e293b" stroke-width="1"/>
+  <rect x="396" y="164" width="46" height="38" rx="2" fill="#334155" stroke="#1e293b" stroke-width="1"/>
+  <rect x="444" y="164" width="46" height="38" rx="2" fill="#334155" stroke="#1e293b" stroke-width="1"/>
+  <rect x="492" y="164" width="46" height="38" rx="2" fill="#334155" stroke="#1e293b" stroke-width="1"/>
+
+  <!-- Legend -->
+  <rect x="170" y="222" width="14" height="14" rx="2" fill="#4f46e5"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" fill="#94a3b8" x="188" y="234">Non-zero weight</text>
+  <rect x="340" y="222" width="14" height="14" rx="2" fill="#334155"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" fill="#94a3b8" x="358" y="234">Zero (pruned)</text>
+
+  <!-- Matrix shape note -->
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" fill="#94a3b8" x="240" y="260" text-anchor="middle">~78% zeros — but matrix shape is unchanged</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" fill="#f87171" x="420" y="260" text-anchor="start">No speedup on GPU</text>
+
+  <!-- Annotation showing no row/col alignment -->
+  <path d="M560 100 Q600 90 620 80" fill="none" stroke="#ef4444" stroke-width="1" stroke-dasharray="3 2"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="10" fill="#fca5a5" x="622" y="78">No row</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="10" fill="#fca5a5" x="622" y="92">alignment</text>
+</svg>

@@ -1,0 +1,125 @@
+<svg width="100%" viewBox="0 0 680 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="680" height="300" fill="#1e293b"/>
+  <!-- FP32 section -->
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="13" font-weight="500" fill="#f8fafc" x="180" y="36" text-anchor="middle">FP32</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" fill="#94a3b8" x="180" y="52" text-anchor="middle">32 bits · ~4 billion distinct values</text>
+
+  <!-- FP32 number line -->
+  <line x1="40" y1="90" x2="320" y2="90" stroke="#94a3b8" stroke-width="1"/>
+  <!-- Many dense tick marks (dense cluster) -->
+  <g stroke="#6366f1" stroke-width="0.5">
+    <line x1="40" y1="82" x2="40" y2="98"/>
+    <line x1="320" y1="82" x2="320" y2="98"/>
+    <!-- Dense ticks in middle -->
+    <line x1="63" y1="85" x2="63" y2="95"/>
+    <line x1="71" y1="85" x2="71" y2="95"/>
+    <line x1="79" y1="85" x2="79" y2="95"/>
+    <line x1="87" y1="85" x2="87" y2="95"/>
+    <line x1="95" y1="85" x2="95" y2="95"/>
+    <line x1="103" y1="85" x2="103" y2="95"/>
+    <line x1="111" y1="85" x2="111" y2="95"/>
+    <line x1="119" y1="85" x2="119" y2="95"/>
+    <line x1="127" y1="85" x2="127" y2="95"/>
+    <line x1="135" y1="85" x2="135" y2="95"/>
+    <line x1="143" y1="85" x2="143" y2="95"/>
+    <line x1="151" y1="85" x2="151" y2="95"/>
+    <line x1="159" y1="85" x2="159" y2="95"/>
+    <line x1="167" y1="85" x2="167" y2="95"/>
+    <line x1="175" y1="85" x2="175" y2="95"/>
+    <line x1="183" y1="85" x2="183" y2="95"/>
+    <line x1="191" y1="85" x2="191" y2="95"/>
+    <line x1="199" y1="85" x2="199" y2="95"/>
+    <line x1="207" y1="85" x2="207" y2="95"/>
+    <line x1="215" y1="85" x2="215" y2="95"/>
+    <line x1="223" y1="85" x2="223" y2="95"/>
+    <line x1="231" y1="85" x2="231" y2="95"/>
+    <line x1="239" y1="85" x2="239" y2="95"/>
+    <line x1="247" y1="85" x2="247" y2="95"/>
+    <line x1="255" y1="85" x2="255" y2="95"/>
+    <line x1="263" y1="85" x2="263" y2="95"/>
+    <line x1="271" y1="85" x2="271" y2="95"/>
+    <line x1="279" y1="85" x2="279" y2="95"/>
+    <line x1="287" y1="85" x2="287" y2="95"/>
+    <line x1="295" y1="85" x2="295" y2="95"/>
+    <line x1="303" y1="85" x2="303" y2="95"/>
+  </g>
+  <!-- Range labels -->
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="10" fill="#94a3b8" x="40" y="112" text-anchor="middle">−3.4×10³⁸</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="10" fill="#94a3b8" x="180" y="112" text-anchor="middle">0</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="10" fill="#94a3b8" x="320" y="112" text-anchor="middle">+3.4×10³⁸</text>
+  <!-- Zoom annotation -->
+  <rect x="150" y="76" width="60" height="30" rx="3" fill="#1e1b4b" stroke="#6366f1" stroke-width="0.5"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="9" fill="#a5b4fc" x="180" y="88" text-anchor="middle">~7 decimal</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="9" fill="#a5b4fc" x="180" y="100" text-anchor="middle">digits precision</text>
+
+  <!-- Properties -->
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" fill="#e2e8f0" x="180" y="136" text-anchor="middle">· Enormous dynamic range</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" fill="#e2e8f0" x="180" y="152" text-anchor="middle">· 4 bytes per value · Standard training format</text>
+
+  <!-- Divider -->
+  <line x1="340" y1="30" x2="340" y2="270" stroke="#334155" stroke-width="0.5"/>
+
+  <!-- INT8 section -->
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="13" font-weight="500" fill="#f8fafc" x="510" y="36" text-anchor="middle">INT8</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" fill="#94a3b8" x="510" y="52" text-anchor="middle">8 bits · 256 distinct values</text>
+
+  <!-- INT8 number line -->
+  <line x1="360" y1="90" x2="640" y2="90" stroke="#94a3b8" stroke-width="1"/>
+  <!-- 256 evenly spaced ticks — show ~32 representative ones at even spacing -->
+  <g stroke="#22c55e" stroke-width="1">
+    <line x1="360" y1="80" x2="360" y2="100"/>
+    <line x1="369" y1="84" x2="369" y2="96"/>
+    <line x1="378" y1="84" x2="378" y2="96"/>
+    <line x1="387" y1="84" x2="387" y2="96"/>
+    <line x1="396" y1="84" x2="396" y2="96"/>
+    <line x1="405" y1="84" x2="405" y2="96"/>
+    <line x1="414" y1="84" x2="414" y2="96"/>
+    <line x1="423" y1="84" x2="423" y2="96"/>
+    <line x1="432" y1="80" x2="432" y2="100"/>
+    <line x1="441" y1="84" x2="441" y2="96"/>
+    <line x1="450" y1="84" x2="450" y2="96"/>
+    <line x1="459" y1="84" x2="459" y2="96"/>
+    <line x1="468" y1="84" x2="468" y2="96"/>
+    <line x1="477" y1="84" x2="477" y2="96"/>
+    <line x1="486" y1="84" x2="486" y2="96"/>
+    <line x1="495" y1="84" x2="495" y2="96"/>
+    <line x1="500" y1="80" x2="500" y2="100"/>
+    <line x1="509" y1="84" x2="509" y2="96"/>
+    <line x1="518" y1="84" x2="518" y2="96"/>
+    <line x1="527" y1="84" x2="527" y2="96"/>
+    <line x1="536" y1="84" x2="536" y2="96"/>
+    <line x1="545" y1="84" x2="545" y2="96"/>
+    <line x1="554" y1="84" x2="554" y2="96"/>
+    <line x1="563" y1="84" x2="563" y2="96"/>
+    <line x1="572" y1="80" x2="572" y2="100"/>
+    <line x1="581" y1="84" x2="581" y2="96"/>
+    <line x1="590" y1="84" x2="590" y2="96"/>
+    <line x1="599" y1="84" x2="599" y2="96"/>
+    <line x1="608" y1="84" x2="608" y2="96"/>
+    <line x1="617" y1="84" x2="617" y2="96"/>
+    <line x1="626" y1="84" x2="626" y2="96"/>
+    <line x1="640" y1="80" x2="640" y2="100"/>
+  </g>
+  <!-- Range labels -->
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="10" fill="#94a3b8" x="360" y="112" text-anchor="middle">−128</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="10" fill="#94a3b8" x="500" y="112" text-anchor="middle">0</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="10" fill="#94a3b8" x="640" y="112" text-anchor="middle">+127</text>
+
+  <!-- Gap annotation -->
+  <path d="M468 70 L468 60 L527 60 L527 70" fill="none" stroke="#22c55e" stroke-width="0.8"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="9" fill="#4ade80" x="498" y="55" text-anchor="middle">step ≈ 0.008</text>
+
+  <!-- Properties -->
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" fill="#e2e8f0" x="510" y="136" text-anchor="middle">· Fixed uniform step size</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" fill="#e2e8f0" x="510" y="152" text-anchor="middle">· 1 byte per value · 4× smaller</text>
+
+  <!-- Comparison bar at bottom -->
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" font-weight="500" fill="#e2e8f0" x="340" y="194" text-anchor="middle">Memory comparison (per weight)</text>
+  <rect x="80" y="206" width="160" height="20" rx="4" fill="#4f46e5"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" fill="#f8fafc" x="160" y="221" text-anchor="middle">FP32 · 32 bits</text>
+  <rect x="80" y="236" width="40" height="20" rx="4" fill="#22c55e"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" fill="#e2e8f0" x="125" y="251" text-anchor="start">INT8 · 8 bits (4× smaller)</text>
+
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" fill="#94a3b8" x="340" y="278" text-anchor="middle">Scale factor maps INT8 range → original FP32 range per layer</text>
+</svg>

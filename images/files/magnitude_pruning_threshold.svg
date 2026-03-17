@@ -1,0 +1,56 @@
+<svg width="100%" viewBox="0 0 680 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <!-- Background -->
+  <rect width="680" height="300" fill="#1e293b"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="13" font-weight="500" fill="#f8fafc" x="340" y="24" text-anchor="middle">Magnitude-based weight pruning</text>
+
+  <!-- Axes -->
+  <line x1="60" y1="220" x2="620" y2="220" stroke="#475569" stroke-width="0.5"/>
+  <line x1="60" y1="50" x2="60" y2="220" stroke="#475569" stroke-width="0.5"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" fill="#94a3b8" x="340" y="244" text-anchor="middle">|weight|</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" fill="#94a3b8" transform="rotate(-90 26 140)" x="26" y="140" text-anchor="middle">count</text>
+
+  <!-- Bell/lognormal-ish distribution (asymmetric, most near zero) -->
+  <!-- Removed (red/pruned) region left of threshold -->
+  <path d="M70,220 Q90,218 110,205 Q130,180 150,150 Q160,130 175,120 Q185,115 195,118 Q205,122 215,135"
+    fill="#2d0a0a" stroke="none"/>
+  <path d="M215,135 L215,220 L70,220 Z" fill="#2d0a0a" stroke="none"/>
+
+  <!-- Kept (active) region right of threshold -->
+  <path d="M215,135 Q225,150 245,165 Q280,185 320,196 Q380,208 450,215 Q520,219 580,220"
+    fill="#0d2216" stroke="none"/>
+  <path d="M215,135 L215,220 L580,220 Z" fill="#0d2216" stroke="none"/>
+
+  <!-- Distribution curve -->
+  <path d="M70,220 Q90,218 110,205 Q130,180 150,150 Q160,130 175,120 Q185,115 195,118 Q205,122 215,135 Q225,150 245,165 Q280,185 320,196 Q380,208 450,215 Q520,219 580,220"
+    fill="none" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <!-- Threshold line -->
+  <line x1="215" y1="50" x2="215" y2="225" stroke="#ef4444" stroke-width="2" stroke-dasharray="5 3"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" font-weight="500" fill="#ef4444" x="215" y="44" text-anchor="middle">threshold τ</text>
+
+  <!-- Arrows and labels -->
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#f87171" x="135" y="200" text-anchor="middle">PRUNED</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" fill="#fca5a5" x="135" y="215" text-anchor="middle">|w| &lt; τ</text>
+
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#4ade80" x="370" y="200" text-anchor="middle">KEPT</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" fill="#86efac" x="370" y="215" text-anchor="middle">|w| ≥ τ</text>
+
+  <!-- X axis labels -->
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="10" fill="#94a3b8" x="60" y="236" text-anchor="middle">0</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="10" fill="#94a3b8" x="215" y="236" text-anchor="middle">τ</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="10" fill="#94a3b8" x="580" y="236" text-anchor="middle">max</text>
+
+  <!-- Sorting description -->
+  <rect x="420" y="60" width="200" height="68" rx="6" fill="#0f172a" stroke="#334155" stroke-width="0.5"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" fill="#e2e8f0" x="520" y="82" text-anchor="middle">Algorithm:</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" fill="#94a3b8" x="520" y="98" text-anchor="middle">1. Compute |w| for all weights</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" fill="#94a3b8" x="520" y="114" text-anchor="middle">2. Sort ascending</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" fill="#94a3b8" x="520" y="130" text-anchor="middle">3. Zero bottom k%</text>
+
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" fill="#94a3b8" x="340" y="268" text-anchor="middle">Simple, fast, unstructured — produces irregular sparsity pattern</text>
+</svg>

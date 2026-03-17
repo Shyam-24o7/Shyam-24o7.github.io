@@ -1,0 +1,132 @@
+<svg width="100%" viewBox="0 0 680 380" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <!-- Background -->
+  <rect width="680" height="380" fill="#1e293b"/>
+
+  <!-- LEFT: Large dense network -->
+  <rect x="40" y="40" width="240" height="290" rx="12" fill="#1a1040" stroke="#334155" stroke-width="0.5"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" font-weight="500" fill="#a5b4fc" x="160" y="62" text-anchor="middle">Large trained network</text>
+
+  <!-- Dense connections (background lines) -->
+  <g stroke="#3730a3" stroke-width="0.5" opacity="0.6">
+    <line x1="90" y1="90" x2="160" y2="95"/>
+    <line x1="90" y1="90" x2="160" y2="130"/>
+    <line x1="90" y1="90" x2="160" y2="165"/>
+    <line x1="90" y1="90" x2="160" y2="200"/>
+    <line x1="90" y1="120" x2="160" y2="95"/>
+    <line x1="90" y1="120" x2="160" y2="130"/>
+    <line x1="90" y1="120" x2="160" y2="165"/>
+    <line x1="90" y1="120" x2="160" y2="200"/>
+    <line x1="90" y1="150" x2="160" y2="95"/>
+    <line x1="90" y1="150" x2="160" y2="130"/>
+    <line x1="90" y1="150" x2="160" y2="165"/>
+    <line x1="90" y1="150" x2="160" y2="200"/>
+    <line x1="90" y1="180" x2="160" y2="95"/>
+    <line x1="90" y1="180" x2="160" y2="130"/>
+    <line x1="90" y1="180" x2="160" y2="165"/>
+    <line x1="90" y1="180" x2="160" y2="200"/>
+    <line x1="90" y1="210" x2="160" y2="95"/>
+    <line x1="90" y1="210" x2="160" y2="130"/>
+    <line x1="90" y1="210" x2="160" y2="165"/>
+    <line x1="90" y1="210" x2="160" y2="200"/>
+    <!-- L2→L3 -->
+    <line x1="172" y1="95" x2="238" y2="110"/>
+    <line x1="172" y1="95" x2="238" y2="150"/>
+    <line x1="172" y1="95" x2="238" y2="190"/>
+    <line x1="172" y1="130" x2="238" y2="110"/>
+    <line x1="172" y1="130" x2="238" y2="150"/>
+    <line x1="172" y1="130" x2="238" y2="190"/>
+    <line x1="172" y1="165" x2="238" y2="110"/>
+    <line x1="172" y1="165" x2="238" y2="150"/>
+    <line x1="172" y1="165" x2="238" y2="190"/>
+    <line x1="172" y1="200" x2="238" y2="110"/>
+    <line x1="172" y1="200" x2="238" y2="150"/>
+    <line x1="172" y1="200" x2="238" y2="190"/>
+  </g>
+
+  <!-- Layer 1 nodes -->
+  <circle cx="90" cy="90" r="8" fill="#4338ca" stroke="#6366f1" stroke-width="0.5"/>
+  <circle cx="90" cy="120" r="8" fill="#4338ca" stroke="#6366f1" stroke-width="0.5"/>
+  <circle cx="90" cy="150" r="8" fill="#4338ca" stroke="#6366f1" stroke-width="0.5"/>
+  <circle cx="90" cy="180" r="8" fill="#4338ca" stroke="#6366f1" stroke-width="0.5"/>
+  <circle cx="90" cy="210" r="8" fill="#4338ca" stroke="#6366f1" stroke-width="0.5"/>
+  <!-- Layer 2 nodes -->
+  <circle cx="160" cy="95" r="8" fill="#4338ca" stroke="#6366f1" stroke-width="0.5"/>
+  <circle cx="160" cy="130" r="8" fill="#4338ca" stroke="#6366f1" stroke-width="0.5"/>
+  <circle cx="160" cy="165" r="8" fill="#4338ca" stroke="#6366f1" stroke-width="0.5"/>
+  <circle cx="160" cy="200" r="8" fill="#4338ca" stroke="#6366f1" stroke-width="0.5"/>
+  <!-- Layer 3 nodes -->
+  <circle cx="238" cy="110" r="8" fill="#4338ca" stroke="#6366f1" stroke-width="0.5"/>
+  <circle cx="238" cy="150" r="8" fill="#4338ca" stroke="#6366f1" stroke-width="0.5"/>
+  <circle cx="238" cy="190" r="8" fill="#4338ca" stroke="#6366f1" stroke-width="0.5"/>
+
+  <!-- Highlighted "winning ticket" subnetwork -->
+  <g stroke="#818cf8" stroke-width="2" opacity="0.9">
+    <line x1="90" y1="120" x2="160" y2="95"/>
+    <line x1="90" y1="150" x2="160" y2="165"/>
+    <line x1="90" y1="180" x2="160" y2="165"/>
+    <line x1="160" y1="95" x2="238" y2="110"/>
+    <line x1="160" y1="165" x2="238" y2="150"/>
+    <line x1="160" y1="165" x2="238" y2="190"/>
+  </g>
+  <!-- Winning ticket nodes (highlighted) -->
+  <circle cx="90" cy="120" r="9" fill="#6366f1" stroke="#4338ca" stroke-width="1"/>
+  <circle cx="90" cy="150" r="9" fill="#6366f1" stroke="#4338ca" stroke-width="1"/>
+  <circle cx="90" cy="180" r="9" fill="#6366f1" stroke="#4338ca" stroke-width="1"/>
+  <circle cx="160" cy="95" r="9" fill="#6366f1" stroke="#4338ca" stroke-width="1"/>
+  <circle cx="160" cy="165" r="9" fill="#6366f1" stroke="#4338ca" stroke-width="1"/>
+  <circle cx="238" cy="110" r="9" fill="#6366f1" stroke="#4338ca" stroke-width="1"/>
+  <circle cx="238" cy="150" r="9" fill="#6366f1" stroke="#4338ca" stroke-width="1"/>
+  <circle cx="238" cy="190" r="9" fill="#6366f1" stroke="#4338ca" stroke-width="1"/>
+
+  <!-- Legend for left -->
+  <circle cx="60" cy="260" r="7" fill="#4338ca" stroke="#6366f1" stroke-width="0.5"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" fill="#94a3b8" x="72" y="264">Inactive weights</text>
+  <circle cx="60" cy="284" r="7" fill="#6366f1" stroke="#4338ca" stroke-width="1"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" fill="#94a3b8" x="72" y="288">Winning ticket</text>
+
+  <!-- Arrow between diagrams -->
+  <line x1="295" y1="185" x2="355" y2="185" stroke="#94a3b8" stroke-width="1" marker-end="url(#arrow)"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" fill="#94a3b8" x="325" y="178" text-anchor="middle">prune</text>
+
+  <!-- RIGHT: Sparse subnetwork -->
+  <rect x="370" y="40" width="240" height="290" rx="12" fill="#0d2216" stroke="#334155" stroke-width="0.5"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" font-weight="500" fill="#4ade80" x="490" y="62" text-anchor="middle">Winning ticket subnetwork</text>
+
+  <!-- Sparse connections -->
+  <g stroke="#22c55e" stroke-width="1.5" opacity="0.7">
+    <line x1="420" y1="120" x2="490" y2="95"/>
+    <line x1="420" y1="150" x2="490" y2="165"/>
+    <line x1="420" y1="180" x2="490" y2="165"/>
+    <line x1="490" y1="95" x2="558" y2="110"/>
+    <line x1="490" y1="165" x2="558" y2="150"/>
+    <line x1="490" y1="165" x2="558" y2="190"/>
+  </g>
+
+  <!-- Sparse nodes (only winning ticket) -->
+  <circle cx="420" cy="120" r="9" fill="#22c55e" stroke="#166534" stroke-width="1"/>
+  <circle cx="420" cy="150" r="9" fill="#22c55e" stroke="#166534" stroke-width="1"/>
+  <circle cx="420" cy="180" r="9" fill="#22c55e" stroke="#166534" stroke-width="1"/>
+  <circle cx="490" cy="95" r="9" fill="#22c55e" stroke="#166534" stroke-width="1"/>
+  <circle cx="490" cy="165" r="9" fill="#22c55e" stroke="#166534" stroke-width="1"/>
+  <circle cx="558" cy="110" r="9" fill="#22c55e" stroke="#166534" stroke-width="1"/>
+  <circle cx="558" cy="150" r="9" fill="#22c55e" stroke="#166534" stroke-width="1"/>
+  <circle cx="558" cy="190" r="9" fill="#22c55e" stroke="#166534" stroke-width="1"/>
+
+  <!-- Removed nodes (ghost) -->
+  <circle cx="420" cy="90" r="8" fill="none" stroke="#475569" stroke-width="0.5" stroke-dasharray="3 2"/>
+  <circle cx="420" cy="210" r="8" fill="none" stroke="#475569" stroke-width="0.5" stroke-dasharray="3 2"/>
+  <circle cx="490" cy="130" r="8" fill="none" stroke="#475569" stroke-width="0.5" stroke-dasharray="3 2"/>
+  <circle cx="490" cy="200" r="8" fill="none" stroke="#475569" stroke-width="0.5" stroke-dasharray="3 2"/>
+
+  <!-- Size comparison annotation -->
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" fill="#4ade80" x="490" y="258" text-anchor="middle">~70% fewer parameters</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" fill="#4ade80" x="490" y="274" text-anchor="middle">comparable accuracy</text>
+
+  <!-- Title -->
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="13" font-weight="500" fill="#e2e8f0" x="340" y="356" text-anchor="middle">The lottery ticket hypothesis: the winning subnetwork was always there</text>
+</svg>

@@ -1,0 +1,59 @@
+<svg width="100%" viewBox="0 0 680 340" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <!-- Background -->
+  <rect width="680" height="340" fill="#1e293b"/>
+
+  <!-- FORWARD PASS -->
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" font-weight="500" fill="#22c55e" x="50" y="36">FORWARD PASS — discrete step function (rounding)</text>
+  <rect x="40" y="44" width="600" height="120" rx="8" fill="#0d2216" stroke="#22c55e" stroke-width="0.5"/>
+
+  <!-- Step function graph -->
+  <!-- Axes -->
+  <line x1="100" y1="150" x2="100" y2="58" stroke="#94a3b8" stroke-width="0.8"/>
+  <line x1="80" y1="130" x2="300" y2="130" stroke="#94a3b8" stroke-width="0.8"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="10" fill="#94a3b8" x="304" y="133">input</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="10" fill="#94a3b8" x="100" y="56">output</text>
+
+  <!-- Step function path -->
+  <polyline points="80,130 90,130 90,118 110,118 110,106 130,106 130,94 150,94 150,82 170,82 170,70 190,70 200,70"
+    fill="none" stroke="#4ade80" stroke-width="2" stroke-linecap="round"/>
+  <!-- dots at transitions -->
+  <circle cx="90" cy="118" r="3" fill="#4ade80"/>
+  <circle cx="110" cy="106" r="3" fill="#4ade80"/>
+  <circle cx="130" cy="94" r="3" fill="#4ade80"/>
+  <circle cx="150" cy="82" r="3" fill="#4ade80"/>
+  <circle cx="170" cy="70" r="3" fill="#4ade80"/>
+
+  <!-- Gradient annotation: zero slope -->
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" fill="#e2e8f0" x="230" y="88">Gradient = 0 everywhere</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" fill="#e2e8f0" x="230" y="104">Undefined at discontinuities</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" fill="#f87171" x="230" y="120">Cannot backpropagate directly</text>
+  <rect x="226" y="76" width="218" height="52" rx="4" fill="none" stroke="#ef4444" stroke-width="0.8" stroke-dasharray="4 2"/>
+
+  <!-- BACKWARD PASS -->
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" font-weight="500" fill="#ef4444" x="50" y="198">BACKWARD PASS — STE: identity function (the deliberate lie)</text>
+  <rect x="40" y="206" width="600" height="120" rx="8" fill="#2d0a0a" stroke="#ef4444" stroke-width="0.5"/>
+
+  <!-- Straight line graph -->
+  <!-- Axes -->
+  <line x1="100" y1="312" x2="100" y2="220" stroke="#94a3b8" stroke-width="0.8"/>
+  <line x1="80" y1="292" x2="300" y2="292" stroke="#94a3b8" stroke-width="0.8"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="10" fill="#94a3b8" x="304" y="295">input</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="10" fill="#94a3b8" x="100" y="218">grad out</text>
+
+  <!-- Identity line -->
+  <line x1="82" y1="310" x2="250" y2="225" stroke="#f87171" stroke-width="2"/>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="10" fill="#fca5a5" x="255" y="223">grad_out = grad_in</text>
+
+  <!-- Slope = 1 annotation -->
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" fill="#e2e8f0" x="230" y="250">Gradient passes through as-is</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" fill="#e2e8f0" x="230" y="266">Direction is (mostly) correct</text>
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" fill="#4ade80" x="230" y="282">Works empirically despite the hack</text>
+  <rect x="226" y="238" width="224" height="52" rx="4" fill="none" stroke="#22c55e" stroke-width="0.8" stroke-dasharray="4 2"/>
+
+  <text font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" fill="#94a3b8" x="340" y="328" text-anchor="middle">STE makes QAT tractable — the optimizer still finds good solutions</text>
+</svg>
