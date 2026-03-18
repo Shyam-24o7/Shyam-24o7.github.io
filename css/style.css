@@ -845,11 +845,11 @@ html.light .theme-toggle:hover {
 .post-content a:hover { text-decoration-color: var(--accent); opacity: 0.85; }
 .post-content img { border-radius: var(--radius); border: 1px solid var(--border); margin: 1.25rem auto; }
 .post-content p > em small { font-size: 0.72em; opacity: 0.45; margin-left: 0.4em; }
-/* SVGs were designed for dark backgrounds — give them one in light mode */
+/* SVGs were designed for dark mode — invert in light mode so they blend naturally */
 html.light .post-content img[src$=".svg"] {
-  background: #1e1e26;
-  padding: 1.25rem;
-  border-color: #2e2e3a;
+  filter: invert(1) hue-rotate(180deg);
+  background: transparent;
+  border-color: var(--border);
 }
 
 /* ============================================================
