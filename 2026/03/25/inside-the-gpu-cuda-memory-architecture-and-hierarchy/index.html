@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inside the GPU: CUDA, Threads, and the Architecture That Makes It All Work | Shyam-24o7</title>
+<meta name="description" content="Writing about computer architecture, hardware acceleration and the mathematics of efficient computation">
+
+<!-- Google Fonts: JetBrains Mono + Inter -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<!-- KaTeX -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
+
+<!-- Theme CSS -->
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+<meta name="generator" content="Hexo 8.1.1"></head>
+<body>
+  <!-- Scroll progress bar -->
+  <div id="scroll-progress"></div>
+
+  <header class="site-header">
+  <div class="container header-inner">
+    <a class="site-title" href="/">Shyam-24o7</a>
+    <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">&#9776;</button>
+    <nav class="site-nav" id="site-nav">
+      <a href="/">Home</a>
+      <a href="/archives">Archives</a>
+      <a href="/about">About</a>
+      <a href="/contact">Contact</a>
+    </nav>
+    <button class="search-btn" id="search-btn" aria-label="Search posts" title="Search (Ctrl+K)">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    </button>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle light/dark mode" title="Toggle light mode">
+      <span class="theme-icon">🌙</span>
+    </button>
+  </div>
+</header>
+
+
+  <!-- Search overlay -->
+  <div class="search-overlay" id="search-overlay" aria-hidden="true">
+    <div class="search-modal" role="dialog" aria-label="Search posts">
+      <div class="search-input-row">
+        <svg class="search-icon-inline" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="search-input" class="search-input" placeholder="Search posts, tags, content..." autocomplete="off" spellcheck="false">
+        <button class="search-close-btn" id="search-close" aria-label="Close">&#x2715;</button>
+      </div>
+      <div class="search-results" id="search-results">
+        <p class="search-hint">Start typing to search &nbsp;·&nbsp; <kbd>Esc</kbd> to close</p>
+      </div>
+    </div>
+  </div>
+
+  <main class="site-main">
+    <div class="container">
+      
+      <div class="main-content main-content--full">
+        <article class="post-full">
+  <header class="post-full-header">
+    <h1 class="post-full-title">Inside the GPU: CUDA, Threads, and the Architecture That Makes It All Work</h1>
+    <div class="post-meta">
+      <time datetime="2026-03-24T18:30:00.000Z">2026-03-25</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <p><em>Thousands of threads. One instruction. This is how GPUs think.</em></p>
+<hr>
+<p>If you’ve read my previous post on tradeoffs in hardware, you already know the core intuition: CPUs optimize for latency, GPUs optimize for throughput. One fat sports car vs hundreds of bicycles. That framing is clean, but it’s also a bit unsatisfying once you start asking <em>how</em>. How exactly does a GPU achieve that throughput? What’s actually happening when you launch a CUDA kernel? What does “thousands of threads” even mean at the hardware level?</p>
+<p>That’s what this post is about. We’re going inside — from the physical chip, through the memory hierarchy, all the way up to the programming model you write code against. By the end, the <code>&lt;&lt;&lt;grid, block&gt;&gt;&gt;</code> syntax shouldn’t feel like magic incantation anymore. It should feel like a direct map onto the hardware underneath.</p>
+<p>Fair warning: this gets technical. That’s the point.</p>
+<hr>
+<h2 id="Why-GPUs-Exist-The-One-Slide-Version"><a href="#Why-GPUs-Exist-The-One-Slide-Version" class="headerlink" title="Why GPUs Exist: The One-Slide Version"></a>Why GPUs Exist: The One-Slide Version</h2><p>I want to keep this section short because I’ve covered the motivation elsewhere, but the numbers are worth repeating once. An Intel Nehalem 4-core (the high-end server chip of its era) delivered about <strong>0.8 GFLOPS&#x2F;W</strong>. An AMD Radeon 5870 from roughly the same period delivered <strong>14.5 GFLOPS&#x2F;W</strong>. That’s an 18× difference in energy efficiency for floating-point work.</p>
+<p>The reason isn’t that GPU engineers are smarter. It’s that they made a fundamentally different tradeoff: throw out everything that helps a <em>single thread</em> run fast — out-of-order execution, big branch predictors, large caches, memory prefetchers — and use that freed silicon budget to build hundreds of simple execution units instead. The CPU devotes most of its die to making one thread go as fast as possible. The GPU devotes most of its die to running thousands of threads at once.</p>
+<p>![PLACEHOLDER: CPU die photo (Intel Nehalem) vs GPU die photo (AMD 5870), showing how the GPU is dominated by compute units while the CPU is dominated by cache and control logic]<br><em>CPU on the left: most of the area is cache and control hardware. GPU on the right: almost everything is compute.</em></p>
+<p>That bet pays off enormously for workloads with a lot of independent parallel computation — graphics, matrix multiplication, neural network inference, scientific simulation. For everything else, the CPU is still the right tool.</p>
+<hr>
+<h2 id="The-GPU’s-Anatomy-What’s-Actually-on-the-Die"><a href="#The-GPU’s-Anatomy-What’s-Actually-on-the-Die" class="headerlink" title="The GPU’s Anatomy: What’s Actually on the Die"></a>The GPU’s Anatomy: What’s Actually on the Die</h2><p>Let’s start from the hardware and work upward, because everything in CUDA only makes sense once you know what it’s mapping onto.</p>
+<p>A GPU is built around a collection of <strong>Streaming Multiprocessors (SMs)</strong>. Each SM is the fundamental processing unit — think of it as a mini-processor that’s capable of running hundreds of threads simultaneously. The SM contains its own execution units (CUDA cores, tensor cores on modern GPUs), its own register file, its own L1 cache, its own shared memory, and its own warp schedulers. It’s largely self-contained.</p>
+<p>All the SMs are then connected through an interconnect fabric to a shared <strong>L2 cache</strong> and finally to <strong>DRAM</strong> (HBM on data-center GPUs, GDDR on gaming cards). That’s roughly the full picture: many SMs + shared L2 + off-chip DRAM.</p>
+<p>![PLACEHOLDER: Simplified GPU block diagram — multiple SMs each with L1&#x2F;shared memory, connected via interconnect to shared L2 cache, then to DRAM]<br><em>The simplified GPU: a collection of SMs, a shared L2, and off-chip DRAM. Almost everything interesting happens inside the SM.</em></p>
+<p>To make this concrete: the <strong>NVIDIA A100</strong> has 108 SMs, a 40 MB L2 cache, and up to 2039 GB&#x2F;s of bandwidth from 80 GB of HBM2 memory. Each SM on the A100 has 64 FP32 CUDA cores, giving a total of 6,912 CUDA cores across the chip. When you hear “the A100 has 6912 CUDA cores,” that’s 108 SMs × 64 cores per SM.</p>
+<p>Now let’s go inside a single SM.</p>
+<h3 id="What-Lives-Inside-One-SM"><a href="#What-Lives-Inside-One-SM" class="headerlink" title="What Lives Inside One SM"></a>What Lives Inside One SM</h3><p>An SM is more complex than it looks from the outside. At its core you have the <strong>CUDA cores</strong> — FP32, INT32, and FP64 units that are the actual arithmetic execution units — alongside dedicated <strong>Tensor cores</strong> for matrix multiply-accumulate operations (MMA), critical for AI workloads. Each SM maintains a large <strong>register file</strong> (65,536 × 32-bit registers on most modern NVIDIA GPUs) shared across all threads running on that SM. The <strong>L1 cache and shared memory</strong> are physically the same SRAM, with the split software-configurable — on the A100 that’s up to 192 KB per SM, divided between L1 and shared memory as the programmer needs. Rounding it out are <strong>warp schedulers</strong> that select which warps execute each cycle, <strong>load&#x2F;store units</strong> for memory operations to L1&#x2F;shared&#x2F;global memory, and <strong>Special Function Units (SFUs)</strong> for transcendental operations like sin, cos, and sqrt.</p>
+<p>![PLACEHOLDER: Detailed SM diagram showing CUDA cores organized in processing blocks, warp schedulers, register file, L1&#x2F;shared memory, tensor cores]<br><em>Inside one SM: multiple “processing blocks” each with their own warp scheduler and execution units. All blocks share the SM’s register file and shared memory.</em></p>
+<p>The register file being so large is a deliberate choice. Unlike CPUs where you have maybe 16-32 architectural registers, a GPU SM maintains full register state for <em>all active threads simultaneously</em>. This is what enables fast context switching between warps — no saving&#x2F;restoring state, it’s already there in the register file.</p>
+<hr>
+<h2 id="The-Thread-Hierarchy-Grid-Block-Warp-Thread"><a href="#The-Thread-Hierarchy-Grid-Block-Warp-Thread" class="headerlink" title="The Thread Hierarchy: Grid, Block, Warp, Thread"></a>The Thread Hierarchy: Grid, Block, Warp, Thread</h2><p>This is the conceptual heart of CUDA. The hierarchy has four levels, and each one maps to something real in the hardware.</p>
+<p>![PLACEHOLDER: Full CUDA thread hierarchy diagram — Grid containing multiple Blocks, each Block containing multiple Threads, with correspondence arrows to GPU hardware (Grid→Device, Block→SM, Warp→32 threads executing together)]</p>
+<h3 id="Threads"><a href="#Threads" class="headerlink" title="Threads"></a>Threads</h3><p>A <strong>CUDA thread</strong> is the atomic unit of execution. Each thread runs the same kernel function but operates on different data — it knows its own position via <code>threadIdx</code> (a 3D variable: <code>threadIdx.x</code>, <code>threadIdx.y</code>, <code>threadIdx.z</code>).</p>
+<p>Every thread has its own set of registers. It doesn’t share registers with any other thread. That’s the first and most private level of the memory hierarchy.</p>
+<h3 id="Blocks"><a href="#Blocks" class="headerlink" title="Blocks"></a>Blocks</h3><p>Threads are grouped into <strong>blocks</strong> (also called thread blocks). A block can be 1D, 2D, or 3D — whatever makes sense for your data layout. The block’s dimensions are accessible as <code>blockDim</code>.</p>
+<p>The critical hardware mapping: <strong>one block executes on exactly one SM</strong>. Once a block is dispatched to an SM, it stays there until it finishes. All threads in a block can communicate through <strong>shared memory</strong> and synchronize with <code>__syncthreads()</code>. Threads in <em>different</em> blocks cannot directly communicate — they have no shared on-chip memory between them.</p>
+<p>The block size has a hard limit: <strong>1024 threads per block</strong>. This is a hardware constraint — the SM’s warp schedulers and register file can only track so much state per block.</p>
+<h3 id="The-Grid"><a href="#The-Grid" class="headerlink" title="The Grid"></a>The Grid</h3><p>Blocks are organized into a <strong>grid</strong>, which is the full launch of a kernel. When you write:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">// Launch a kernel: numBlocks blocks, each with threadsPerBlock threads</span><br><span class="line">kernel&lt;&lt;&lt;numBlocks, threadsPerBlock&gt;&gt;&gt;(args...);</span><br></pre></td></tr></table></figure>
+
+<p>You’re defining the grid (numBlocks) and the block shape (threadsPerBlock). The GPU’s <strong>GigaThread Engine</strong> (the global work distributor) takes the grid and dispatches blocks to available SMs. Blocks can execute in any order — the hardware schedules them opportunistically as SMs become free.</p>
+<p>Here’s a simple but complete example — adding two matrices:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">// Each thread computes one element of the output matrix C = A + B</span><br><span class="line">__global__ void MatAdd(float A[N][N], float B[N][N], float C[N][N])</span><br><span class="line">&#123;</span><br><span class="line">    // Compute this thread&#x27;s row and column in the matrix</span><br><span class="line">    int i = blockIdx.x * blockDim.x + threadIdx.x;  // row</span><br><span class="line">    int j = blockIdx.y * blockDim.y + threadIdx.y;  // col</span><br><span class="line"></span><br><span class="line">    // Bounds check — edge blocks may have threads outside the matrix</span><br><span class="line">    if (i &lt; N &amp;&amp; j &lt; N)</span><br><span class="line">        C[i][j] = A[i][j] + B[i][j];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">int main()</span><br><span class="line">&#123;</span><br><span class="line">    // 16x16 threads per block = 256 threads, organized in 2D</span><br><span class="line">    dim3 threadsPerBlock(16, 16);</span><br><span class="line"></span><br><span class="line">    // Enough blocks to cover the full N×N matrix</span><br><span class="line">    dim3 numBlocks(</span><br><span class="line">        (N + threadsPerBlock.x - 1) / threadsPerBlock.x,</span><br><span class="line">        (N + threadsPerBlock.y - 1) / threadsPerBlock.y</span><br><span class="line">    );</span><br><span class="line"></span><br><span class="line">    MatAdd&lt;&lt;&lt;numBlocks, threadsPerBlock&gt;&gt;&gt;(A, B, C);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Notice how each thread’s position in the grid gives it a unique <code>(i, j)</code> index into the matrices. That’s the whole trick — you write the computation for one element, and CUDA handles running it for all elements simultaneously.</p>
+<p>![PLACEHOLDER: 2D grid layout diagram — showing how the matrix is tiled into blocks (e.g. 16×16 thread blocks covering an N×N matrix), with one block highlighted to show the 256 threads inside it, and the threadIdx&#x2F;blockIdx coordinates labeled for a corner thread]</p>
+<h3 id="Warps-The-Real-Execution-Unit"><a href="#Warps-The-Real-Execution-Unit" class="headerlink" title="Warps: The Real Execution Unit"></a>Warps: The Real Execution Unit</h3><p>Here’s what most introductions to CUDA skip, which is why people write correct but slow code: <strong>the actual unit of execution on the hardware is not a thread, and not a block — it’s a warp</strong>.</p>
+<p>A <strong>warp</strong> is 32 threads that execute in lockstep under a single instruction stream. This is called <strong>SIMT</strong> — Single Instruction, Multiple Threads. When the SM’s warp scheduler issues an instruction, it issues it to all 32 threads in the warp simultaneously. All 32 threads execute the same instruction, but each with its own registers and data.</p>
+<p>This has been constant across every NVIDIA GPU generation: warp size is always 32.</p>
+<p>When you launch a block of 256 threads, the SM automatically divides it into 8 warps of 32 threads each. You never explicitly program warps — but you’re always running in warps whether you know it or not.</p>
+<p>![PLACEHOLDER: Diagram showing a 256-thread block being divided into 8 warps of 32, with each warp mapped to a set of CUDA cores on the SM for one cycle]</p>
+<hr>
+<h2 id="Warp-Divergence-When-SIMT-Goes-Wrong"><a href="#Warp-Divergence-When-SIMT-Goes-Wrong" class="headerlink" title="Warp Divergence: When SIMT Goes Wrong"></a>Warp Divergence: When SIMT Goes Wrong</h2><p>![PLACEHOLDER: Warp divergence diagram showing a warp where half the threads take branch A and half take branch B, causing two-pass serialized execution vs the ideal single-pass execution]</p>
+<p>Because all 32 threads in a warp execute the same instruction, conditional branches are a problem. Consider this:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">__global__ void branchExample(float* data, float* result)</span><br><span class="line">&#123;</span><br><span class="line">    int idx = blockIdx.x * blockDim.x + threadIdx.x;</span><br><span class="line"></span><br><span class="line">    // Problem: some threads in the same warp may take different paths</span><br><span class="line">    if (data[idx] &gt; 0.0f) &#123;</span><br><span class="line">        result[idx] = data[idx] * 2.0f;   // path A</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">        result[idx] = data[idx] * -1.0f;  // path B</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>If threads 0-15 in a warp have <code>data &gt; 0</code> and threads 16-31 don’t, the warp can’t execute both paths simultaneously. What happens: the hardware <strong>serializes</strong> the two paths. First it executes path A with threads 0-15 active and threads 16-31 masked off (their results discarded). Then it executes path B with threads 16-31 active and 0-15 masked. The warp now takes twice as long.</p>
+<p>This is <strong>warp divergence</strong>, and it’s one of the most common GPU performance killers. The fix is to structure your data so that threads within a warp take the same branch — called <strong>branch coherence</strong>. For the example above, if you sort your data so that all positive values come first, consecutive threads in a warp will take the same path.</p>
+<p>![PLACEHOLDER: Branch coherence fix — showing how sorting&#x2F;partitioning data so that consecutive threads share the same condition eliminates divergence. Contrast: unsorted data (divergent warp) vs sorted data (coherent warp, single pass)]</p>
+<hr>
+<h2 id="Memory-Visibility-What-Can-Talk-to-What"><a href="#Memory-Visibility-What-Can-Talk-to-What" class="headerlink" title="Memory Visibility: What Can Talk to What"></a>Memory Visibility: What Can Talk to What</h2><p>This is where things get subtle, and it’s genuinely important for writing correct parallel code. Not all threads can see the same data, and the rules are strict.</p>
+<h3 id="The-Visibility-Hierarchy"><a href="#The-Visibility-Hierarchy" class="headerlink" title="The Visibility Hierarchy"></a>The Visibility Hierarchy</h3><p>Think of it as concentric circles of visibility:</p>
+<p>![PLACEHOLDER: Memory visibility diagram showing concentric circles — registers (thread only) → shared memory (block) → global&#x2F;constant&#x2F;texture (all threads + host). Include on-chip vs off-chip boundary]</p>
+<p><strong>Register</strong> — Private to one thread. No other thread can see it. Fastest possible access (1 cycle). The compiler decides what lives in registers.</p>
+<p><strong>Local memory</strong> — Also private to one thread, but physically stored in DRAM (despite the misleading name). Used when a thread has too many variables to fit in registers (register spilling), or for per-thread arrays. Access latency is the same as global memory — slow.</p>
+<p><strong>Shared memory</strong> — Visible to all threads <em>in the same block</em>. Physically on-chip (same SRAM as L1 cache). Fast access (~29 cycles on A100). This is your main tool for communication between threads. Declared with <code>__shared__</code>.</p>
+<p><strong>Global memory</strong> — Visible to all threads across all blocks, and to the host CPU. Physically off-chip DRAM. Slow (~466 cycles on A100). This is where your input and output data lives.</p>
+<p><strong>Constant memory</strong> — Read-only, globally visible, cached. Used for small data that all threads read with the same access pattern (e.g., kernel weights, lookup tables). Hardware-cached so repeated reads are fast.</p>
+<p><strong>Texture memory</strong> — Read-only, globally visible, cached with spatial locality optimization. Originally for graphics texture sampling, useful for any access pattern that has 2D spatial locality.</p>
+<p>![PLACEHOLDER: Memory type comparison table diagram — side by side showing each memory type’s scope, latency, capacity, and whether it’s programmer-managed or hardware-managed. Visual summary of the visibility rules]</p>
+<p>The rule that catches people: <strong>threads in different blocks cannot communicate through shared memory</strong>. You can only do inter-block communication through global memory, and global memory has no synchronization guarantees between blocks — blocks may execute in any order. If you need block A’s results before block B runs, that’s a kernel launch boundary problem, not a synchronization problem.</p>
+<p>Here’s a concrete example of using shared memory correctly — a 1D stencil operation where each output depends on a window of neighboring inputs:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">#define BLOCK_SIZE 16</span><br><span class="line">#define RADIUS 3</span><br><span class="line"></span><br><span class="line">__global__ void stencil_1d(int* in, int* out)</span><br><span class="line">&#123;</span><br><span class="line">    // Shared memory buffer — enough for the block&#x27;s data plus the halo</span><br><span class="line">    __shared__ int temp[BLOCK_SIZE + 2 * RADIUS];</span><br><span class="line"></span><br><span class="line">    int gindex = threadIdx.x + blockIdx.x * blockDim.x;  // global index</span><br><span class="line">    int lindex = threadIdx.x + RADIUS;                    // local index with offset</span><br><span class="line"></span><br><span class="line">    // Each thread loads its own element into shared memory</span><br><span class="line">    temp[lindex] = in[gindex];</span><br><span class="line"></span><br><span class="line">    // The first RADIUS threads also load the left halo</span><br><span class="line">    if (threadIdx.x &lt; RADIUS) &#123;</span><br><span class="line">        temp[lindex - RADIUS]   = in[gindex - RADIUS];   // left halo</span><br><span class="line">        temp[lindex + BLOCK_SIZE] = in[gindex + BLOCK_SIZE]; // right halo</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    // CRITICAL: wait for all threads in the block to finish loading</span><br><span class="line">    // Without this, some threads might read data others haven&#x27;t written yet</span><br><span class="line">    __syncthreads();</span><br><span class="line"></span><br><span class="line">    // Now compute the stencil using shared memory (fast) instead of global (slow)</span><br><span class="line">    int result = 0;</span><br><span class="line">    for (int offset = -RADIUS; offset &lt;= RADIUS; offset++)</span><br><span class="line">        result += temp[lindex + offset];</span><br><span class="line"></span><br><span class="line">    out[gindex] = result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>The <code>__syncthreads()</code> call is a barrier — every thread in the block must reach it before any thread can pass it. Without it, thread 0 might start reading <code>temp</code> for computation before thread 5 has written its value in. The barrier makes the load phase and compute phase cleanly separated.</p>
+<p>![PLACEHOLDER: Shared memory stencil diagram — showing the halo loading pattern, where edge threads load extra elements, and all threads then reading from shared memory for the computation]</p>
+<hr>
+<h2 id="The-Full-Memory-Hierarchy-Latency-Numbers-You-Should-Know"><a href="#The-Full-Memory-Hierarchy-Latency-Numbers-You-Should-Know" class="headerlink" title="The Full Memory Hierarchy: Latency Numbers You Should Know"></a>The Full Memory Hierarchy: Latency Numbers You Should Know</h2><p>Here’s the A100’s memory hierarchy with actual latency numbers, because abstract “fast” and “slow” don’t give you the intuition for how large the gaps are:</p>
+<table>
+<thead>
+<tr>
+<th>Memory Level</th>
+<th>Latency (cycles)</th>
+<th>Capacity</th>
+<th>Scope</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Register</td>
+<td>1</td>
+<td>256 KB &#x2F; SM (65,536 × 32-bit regs)</td>
+<td>Per thread</td>
+</tr>
+<tr>
+<td>Shared Memory</td>
+<td>~29</td>
+<td>Up to 164 KB &#x2F; SM</td>
+<td>Per block</td>
+</tr>
+<tr>
+<td>L1D Cache</td>
+<td>~38</td>
+<td>192 KB &#x2F; SM (configurable)</td>
+<td>Per SM</td>
+</tr>
+<tr>
+<td>L2 Cache</td>
+<td>~262</td>
+<td>40 MB (shared)</td>
+<td>All SMs</td>
+</tr>
+<tr>
+<td>Global Memory (HBM2)</td>
+<td>~466</td>
+<td>80 GB</td>
+<td>All threads + host</td>
+</tr>
+</tbody></table>
+<p>The gap between shared memory (29 cycles) and global memory (466 cycles) is <strong>16×</strong>. That’s why every high-performance CUDA kernel loads data into shared memory first, does all its computation there, and only writes back to global memory once at the end. The stencil example above is exactly this pattern.</p>
+<p>For server-grade GPU cache sizes across generations:</p>
+<table>
+<thead>
+<tr>
+<th>GPU</th>
+<th>L2 Cache</th>
+<th>L1 per SM</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>A100</td>
+<td>40 MB</td>
+<td>192 KB</td>
+</tr>
+<tr>
+<td>H100</td>
+<td>50 MB</td>
+<td>256 KB</td>
+</tr>
+<tr>
+<td>L40</td>
+<td>96 MB</td>
+<td>128 KB</td>
+</tr>
+<tr>
+<td>RTX 4090</td>
+<td>72 MB</td>
+<td>128 KB</td>
+</tr>
+</tbody></table>
+<p>![PLACEHOLDER: Memory hierarchy pyramid for GPU — registers at top (smallest, fastest), then shared&#x2F;L1, then L2, then HBM&#x2F;GDDR at the bottom (largest, slowest). Include the actual latency numbers on each level]</p>
+<hr>
+<h2 id="Latency-Hiding-How-the-GPU-Actually-Stays-Busy"><a href="#Latency-Hiding-How-the-GPU-Actually-Stays-Busy" class="headerlink" title="Latency Hiding: How the GPU Actually Stays Busy"></a>Latency Hiding: How the GPU Actually Stays Busy</h2><p>Here’s the thing about those 466-cycle global memory latencies. On a CPU, a 466-cycle memory stall means you’re basically idle for hundreds of nanoseconds, which is why CPUs invest so heavily in prefetching and out-of-order execution to hide that.</p>
+<p>The GPU takes a completely different approach: <strong>hide latency with more warps</strong>.</p>
+<p>Each SM can hold many warps simultaneously — on modern NVIDIA GPUs, up to 64 warps per SM (2048 threads). When the currently executing warp issues a global memory load and has to wait 466 cycles, the warp scheduler immediately switches to a <em>different</em> warp that’s ready to run. No stall. The first warp just waits in the background until its data comes back.</p>
+<p>This only works if you have enough warps to keep the warp scheduler busy during those memory latency gaps. The ratio of active warps to maximum possible warps is called <strong>occupancy</strong>. High occupancy doesn’t automatically mean high performance — sometimes a few warps with lots of register use is better than many warps with few registers — but low occupancy is almost always a sign that the SM is sitting idle waiting on memory.</p>
+<p>![PLACEHOLDER: Warp interleaving diagram — timeline showing Warp 1 issuing a memory load, stalling; Warp 2 immediately executing; Warp 3 executing; by the time Warp 2 also stalls, Warp 1’s data is back. Demonstrates latency hiding through interleaving]</p>
+<p>This is the fundamental difference from CPU threading. CPUs switch threads when they stall, but the cost of a context switch is high so you keep a small number of threads. GPUs make context switching essentially free (the register file already holds all state) and exploit this by keeping hundreds of warps resident simultaneously.</p>
+<hr>
+<h2 id="Synchronization-Making-Parallel-Work-Correct"><a href="#Synchronization-Making-Parallel-Work-Correct" class="headerlink" title="Synchronization: Making Parallel Work Correct"></a>Synchronization: Making Parallel Work Correct</h2><p>We’ve already seen <code>__syncthreads()</code> for intra-block synchronization. Let me be clear about exactly what it does and doesn’t do, because the scoping matters.</p>
+<p><code>__syncthreads()</code> is a <strong>block-level barrier</strong>. It synchronizes all threads within a single block. Every thread in the block must hit the barrier before any thread can proceed past it. It’s implemented as a hardware barrier instruction.</p>
+<p>What it doesn’t do: it doesn’t synchronize across blocks. There is no equivalent of <code>__syncthreads()</code> that works across the entire grid. If you need all blocks to finish some work before proceeding, you have two options:</p>
+<ol>
+<li><strong>End the kernel and launch a new one.</strong> Kernel launches are implicit global barriers — all blocks from the previous launch must complete before any block of the new launch begins.</li>
+<li><strong>Use CUDA cooperative groups</strong> (newer API) which provides more flexible synchronization primitives including grid-level sync, but with restrictions on SM occupancy.</li>
+</ol>
+<p>The reason there’s no general global barrier within a kernel: <strong>deadlock</strong>. If blocks can wait on each other but the scheduler doesn’t have free SMs to run the blocks they’re waiting on, you have a deadlock. The no-inter-block-sync rule prevents this class of bugs entirely.</p>
+<p>![PLACEHOLDER: Deadlock scenario diagram — showing 4 blocks all waiting on each other in a cycle, with the SM having no free slots to run them. Contrasted with the correct two-kernel pattern where an implicit global barrier separates the two phases]</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">// WRONG — attempting to communicate between blocks without proper synchronization</span><br><span class="line">__global__ void wrong_reduction(float* data, float* result)</span><br><span class="line">&#123;</span><br><span class="line">    // Block 0 writes to shared_output[0], block 1 reads it</span><br><span class="line">    // There&#x27;s NO guarantee block 0 finishes before block 1 reads</span><br><span class="line">    // This is a data race — undefined behavior</span><br><span class="line">    if (blockIdx.x == 0) &#123;</span><br><span class="line">        shared_output[0] = compute_partial_sum(data);</span><br><span class="line">    &#125;</span><br><span class="line">    // Block 1 might read shared_output[0] before block 0 writes it</span><br><span class="line">    if (blockIdx.x == 1) &#123;</span><br><span class="line">        result[0] = shared_output[0] + compute_partial_sum(data + N/2);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// CORRECT — split into two kernels, implicit barrier between launches</span><br><span class="line">__global__ void kernel1_partial_sum(float* data, float* partial) &#123; ... &#125;</span><br><span class="line">__global__ void kernel2_combine(float* partial, float* result) &#123; ... &#125;</span><br><span class="line">// Call kernel1, then kernel2 — guaranteed kernel1 finishes first</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="The-Execution-Flow-From-CPU-Code-to-Running-on-Silicon"><a href="#The-Execution-Flow-From-CPU-Code-to-Running-on-Silicon" class="headerlink" title="The Execution Flow: From CPU Code to Running on Silicon"></a>The Execution Flow: From CPU Code to Running on Silicon</h2><p>Let me walk through the complete sequence of what happens when your CUDA program runs, bottom to top. I want this to feel concrete, not abstract.</p>
+<p>It starts on the CPU side. Your C++ code allocates device memory with <code>cudaMalloc</code>, copies input data from CPU RAM to GPU DRAM with <code>cudaMemcpy(HostToDevice)</code>, and defines the grid and block dimensions.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">// On the CPU (host):</span><br><span class="line">float *d_A, *d_B, *d_C;</span><br><span class="line">cudaMalloc(&amp;d_A, N * N * sizeof(float));     // allocate on GPU DRAM</span><br><span class="line">cudaMalloc(&amp;d_B, N * N * sizeof(float));</span><br><span class="line">cudaMalloc(&amp;d_C, N * N * sizeof(float));</span><br><span class="line"></span><br><span class="line">// Copy input matrices from CPU RAM → GPU DRAM over PCIe</span><br><span class="line">cudaMemcpy(d_A, h_A, N * N * sizeof(float), cudaMemcpyHostToDevice);</span><br><span class="line">cudaMemcpy(d_B, h_B, N * N * sizeof(float), cudaMemcpyHostToDevice);</span><br></pre></td></tr></table></figure>
+
+<p>The CPU-to-GPU copy over PCIe is slow relative to on-device memory bandwidth. If you’re doing this frequently for small transfers, PCIe bandwidth is your bottleneck, not GPU compute. This is one of the main reasons NVLink matters for multi-GPU work — but that’s a different post.</p>
+<p>Once the data is on the device, the <code>&lt;&lt;&lt;grid, block&gt;&gt;&gt;</code> syntax triggers the GPU’s work scheduler, sending the grid and block dimensions to the hardware.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">// Kernel launch — CPU triggers this, then continues executing (async)</span><br><span class="line">dim3 threadsPerBlock(16, 16);  // 256 threads per block</span><br><span class="line">dim3 numBlocks((N+15)/16, (N+15)/16);</span><br><span class="line">MatAdd&lt;&lt;&lt;numBlocks, threadsPerBlock&gt;&gt;&gt;(d_A, d_B, d_C);</span><br></pre></td></tr></table></figure>
+
+<p>The kernel launch is <strong>asynchronous by default</strong> — the CPU doesn’t wait for the GPU to finish. It dispatches the work and immediately returns. You need an explicit <code>cudaDeviceSynchronize()</code> if you want to block until the GPU finishes.</p>
+<p>![PLACEHOLDER: Async kernel launch timeline — CPU thread continues executing after kernel launch, GPU executes the kernel in parallel. Show the cudaDeviceSynchronize() call as the point where CPU waits for GPU to finish before the device-to-host copy]</p>
+<p>From there the GPU’s global work scheduler — NVIDIA calls it the GigaThread Engine — receives the grid and starts dispatching thread blocks to available SMs based on resource availability: how many registers does this block need, does the SM have enough shared memory. An SM can run multiple blocks concurrently if resources allow.</p>
+<p>Once a block lands on an SM, the SM divides it into warps of 32 and the warp schedulers take over. They issue instructions to active warps every cycle, while warps waiting on memory are simply parked until their data arrives.</p>
+<p>Each warp then goes through the classic pipeline: fetch instruction, decode, issue to execution units. All 32 threads execute the same instruction simultaneously and results land in per-thread registers. For memory instructions, if data is in L1 the latency is ~38 cycles; L2 is ~262 cycles; a full DRAM miss is ~466 cycles, at which point the warp stalls and the scheduler switches to another ready warp.</p>
+<p>If the kernel uses shared memory, threads cooperatively load data from global memory into shared memory (using global indices), sync with <code>__syncthreads()</code>, then perform fast on-chip computation from there. When computation finishes, threads write their results back to global memory.</p>
+<p>Finally, once the CPU synchronizes with the GPU, it copies results from GPU DRAM back to CPU RAM with <code>cudaMemcpy(DeviceToHost)</code>.</p>
+<p>![PLACEHOLDER: Full execution flow diagram — timeline from CPU code → PCI-e data copy → kernel launch → GigaThread dispatches blocks to SMs → warp execution inside SM → result in DRAM → PCI-e copy back to CPU]</p>
+<hr>
+<h2 id="A-Concrete-GPU-The-NVIDIA-A100-in-Depth"><a href="#A-Concrete-GPU-The-NVIDIA-A100-in-Depth" class="headerlink" title="A Concrete GPU: The NVIDIA A100 in Depth"></a>A Concrete GPU: The NVIDIA A100 in Depth</h2><p>Let’s make everything above concrete with the A100, which is the workhorse of modern AI training infrastructure.</p>
+<h3 id="The-Numbers"><a href="#The-Numbers" class="headerlink" title="The Numbers"></a>The Numbers</h3><table>
+<thead>
+<tr>
+<th>Spec</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Architecture</td>
+<td>Ampere</td>
+</tr>
+<tr>
+<td>Streaming Multiprocessors</td>
+<td>108</td>
+</tr>
+<tr>
+<td>FP32 CUDA Cores &#x2F; SM</td>
+<td>64</td>
+</tr>
+<tr>
+<td>Total FP32 CUDA Cores</td>
+<td>6,912</td>
+</tr>
+<tr>
+<td>Tensor Cores &#x2F; SM</td>
+<td>4 (3rd gen)</td>
+</tr>
+<tr>
+<td>Total Tensor Cores</td>
+<td>432</td>
+</tr>
+<tr>
+<td>Max Threads &#x2F; SM</td>
+<td>2,048</td>
+</tr>
+<tr>
+<td>Max Warps &#x2F; SM</td>
+<td>64</td>
+</tr>
+<tr>
+<td>Registers &#x2F; SM</td>
+<td>65,536 × 32-bit</td>
+</tr>
+<tr>
+<td>Shared Memory &#x2F; SM</td>
+<td>Up to 164 KB</td>
+</tr>
+<tr>
+<td>L2 Cache</td>
+<td>40 MB</td>
+</tr>
+<tr>
+<td>HBM2 Memory</td>
+<td>80 GB</td>
+</tr>
+<tr>
+<td>Memory Bandwidth</td>
+<td>2,039 GB&#x2F;s</td>
+</tr>
+<tr>
+<td>TDP</td>
+<td>400 W</td>
+</tr>
+</tbody></table>
+<h3 id="SM-Internal-Structure-on-A100"><a href="#SM-Internal-Structure-on-A100" class="headerlink" title="SM Internal Structure on A100"></a>SM Internal Structure on A100</h3><p>The A100’s SM is organized into four <strong>processing blocks</strong>, each with its own warp scheduler and dispatch unit. Each processing block has 16 FP32 CUDA cores, 1 FP64 unit, 1 Tensor Core, and 1 load&#x2F;store unit.</p>
+<p>So one SM &#x3D; 4 processing blocks × 16 FP32 cores &#x3D; 64 FP32 cores per SM.</p>
+<p>This quadrant structure is important for warp scheduling: each processing block can issue one warp instruction per cycle, so the SM can be issuing to 4 warps simultaneously.</p>
+<p>![PLACEHOLDER: A100 SM internal diagram — showing the 4 processing blocks side by side, each with its own warp scheduler, 16 FP32 cores, 1 Tensor Core, and load&#x2F;store units. Show the shared register file and shared memory underneath all 4 blocks]</p>
+<h3 id="Tensor-Cores-The-AI-Acceleration-Unit"><a href="#Tensor-Cores-The-AI-Acceleration-Unit" class="headerlink" title="Tensor Cores: The AI Acceleration Unit"></a>Tensor Cores: The AI Acceleration Unit</h3><p>Tensor Cores are the reason the A100 is so dominant for AI workloads. A standard FP32 CUDA core does one multiply-add per cycle. A third-generation Tensor Core does a <strong>4×4×4 matrix multiply-accumulate</strong> in a single operation — that’s 64 multiply-adds in one cycle, using FP16 or BF16 inputs with FP32 accumulation.</p>
+<p>At the warp level, the operation is even larger: a <code>wmma</code> (warp-level matrix multiply-accumulate) instruction operates on a <strong>16×16 matrix fragment</strong> spread across the 32 threads of a warp. The A100 can also use INT8, TF32, and FP64 formats in Tensor Cores depending on the workload requirements.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;mma.h&gt;</span><br><span class="line">using namespace nvcuda;</span><br><span class="line"></span><br><span class="line">// Warp-level matrix multiply using Tensor Cores</span><br><span class="line">// Each thread in the warp holds a fragment of A, B, and C</span><br><span class="line">__global__ void tensor_core_gemm(half* A, half* B, float* C)</span><br><span class="line">&#123;</span><br><span class="line">    // Declare fragments — each thread owns a piece of the 16x16 matrices</span><br><span class="line">    wmma::fragment&lt;wmma::matrix_a, 16, 16, 16, half, wmma::row_major&gt; a_frag;</span><br><span class="line">    wmma::fragment&lt;wmma::matrix_b, 16, 16, 16, half, wmma::col_major&gt; b_frag;</span><br><span class="line">    wmma::fragment&lt;wmma::accumulator, 16, 16, 16, float&gt; c_frag;</span><br><span class="line"></span><br><span class="line">    // Initialize accumulator to zero</span><br><span class="line">    wmma::fill_fragment(c_frag, 0.0f);</span><br><span class="line"></span><br><span class="line">    // Load matrix tiles from global memory into fragments</span><br><span class="line">    wmma::load_matrix_sync(a_frag, A, 16);</span><br><span class="line">    wmma::load_matrix_sync(b_frag, B, 16);</span><br><span class="line"></span><br><span class="line">    // Perform the 16x16x16 matrix multiply — this is the Tensor Core operation</span><br><span class="line">    wmma::mma_sync(c_frag, a_frag, b_frag, c_frag);</span><br><span class="line"></span><br><span class="line">    // Store result back to global memory</span><br><span class="line">    wmma::store_matrix_sync(C, c_frag, 16, wmma::mem_row_major);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>This is what cuBLAS uses under the hood for every matrix multiplication — tiling the large matrices into 16×16 fragments and dispatching Tensor Core operations across the SM array.</p>
+<p>![PLACEHOLDER: Tensor Core operation diagram — showing a 16x16 matrix A (FP16) × 16x16 matrix B (FP16) + 16x16 accumulator C (FP32) → result C. Show how the warp’s 32 threads each own a fragment of these matrices]</p>
+<h3 id="Memory-System-of-the-A100"><a href="#Memory-System-of-the-A100" class="headerlink" title="Memory System of the A100"></a>Memory System of the A100</h3><p>The A100 uses <strong>HBM2</strong> (High Bandwidth Memory, second generation) — a 3D-stacked memory technology where DRAM chips are stacked and connected through silicon vias directly alongside the GPU die. This is why it achieves 2,039 GB&#x2F;s bandwidth while a typical GDDR6 GPU might do 600-700 GB&#x2F;s. The tradeoff is cost and fixed capacity — you can’t upgrade HBM after manufacturing.</p>
+<p>![PLACEHOLDER: HBM2 vs GDDR6 physical packaging diagram — showing HBM2 stacked dies connected via through-silicon vias next to the GPU die on an interposer, vs GDDR6 chips placed farther away on a PCB. Illustrate why HBM2 achieves higher bandwidth (shorter traces, wider bus)]</p>
+<p>The 40 MB L2 cache on the A100 (vs 6 MB on the V100) is specifically sized to hold the working sets of transformer attention operations. This wasn’t accidental — the Ampere architecture was designed with AI workloads as a first-class target.</p>
+<p>One thing the H100 made even clearer: the memory wall is real. H100 has <strong>3.43× more compute</strong> than A100 but only <strong>1.6× more memory bandwidth</strong> and the same 80 GB capacity. The compute is running away from the memory system. This is why quantization (reducing precision → reducing memory traffic) isn’t just a compression trick — it’s a direct response to this imbalance. Models are increasingly memory-bandwidth-bound, not compute-bound.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>A100</th>
+<th>H100</th>
+<th>Ratio</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>FP16 TFLOPs</td>
+<td>77.97</td>
+<td>267.6</td>
+<td>3.43×</td>
+</tr>
+<tr>
+<td>Memory Capacity</td>
+<td>80 GB</td>
+<td>80 GB</td>
+<td>1.0×</td>
+</tr>
+<tr>
+<td>Memory Bandwidth</td>
+<td>2,039 GB&#x2F;s</td>
+<td>3,352 GB&#x2F;s</td>
+<td>1.64×</td>
+</tr>
+<tr>
+<td>NVLink Bandwidth</td>
+<td>600 GB&#x2F;s</td>
+<td>900 GB&#x2F;s</td>
+<td>1.5×</td>
+</tr>
+<tr>
+<td>TDP</td>
+<td>400 W</td>
+<td>700 W</td>
+<td>1.75×</td>
+</tr>
+</tbody></table>
+<p>The implication: a model that fits in memory and has high arithmetic intensity (many FLOPs per byte loaded) will benefit a lot from H100. A model that’s memory-bandwidth-limited (attention with long sequences, for example) benefits much less than the raw FLOP numbers suggest.</p>
+<hr>
+<h2 id="Putting-It-Together-The-Roofline-View"><a href="#Putting-It-Together-The-Roofline-View" class="headerlink" title="Putting It Together: The Roofline View"></a>Putting It Together: The Roofline View</h2><p>If you want to know whether your kernel is limited by compute or memory bandwidth, the Roofline model is your tool. I covered this in detail in the tradeoffs post, but the GPU-specific version:</p>
+<p>Plot your kernel’s <strong>arithmetic intensity</strong> (FLOPs per byte of DRAM traffic) against the hardware’s <strong>peak FLOP&#x2F;s</strong> and <strong>peak bandwidth × bytes per FLOP</strong> ceilings. Where your kernel falls tells you what to optimize. Fall <strong>left of the ridge point</strong> — low arithmetic intensity — and you’re memory-bandwidth-limited: adding more CUDA cores doesn’t help, and the useful moves are optimizing memory access patterns, using shared memory to reuse data, and considering quantization. Fall <strong>right of the ridge point</strong> — high arithmetic intensity — and you’re compute-limited: optimize instruction throughput, use Tensor Cores if applicable, and work on occupancy.</p>
+<p>For the A100:</p>
+<ul>
+<li>Peak FP16 Tensor Core throughput: ~312 TFLOPS (sparse) &#x2F; ~156 TFLOPS (dense)</li>
+<li>Peak HBM2 bandwidth: ~2 TB&#x2F;s</li>
+<li>Ridge point: ~312 TFLOPS &#x2F; 2 TB&#x2F;s ≈ <strong>156 FLOPs&#x2F;byte</strong></li>
+</ul>
+<p>Dense matrix multiplication on large matrices easily exceeds 156 FLOPs&#x2F;byte and sits firmly in the compute-bound regime — which is exactly why matrix multiply maps so well to GPUs and why Tensor Cores deliver their full theoretical throughput on large GEMMs. Sparse operations, attention with short sequences, and embedding lookups are memory-bandwidth-limited and see far less benefit from raw FLOP improvements.</p>
+<p>![PLACEHOLDER: A100 Roofline diagram — plot with bandwidth line (slope) and compute ceiling (flat), ridge point marked at ~156 FLOPs&#x2F;byte. Show where GEMM (compute-bound, right side), attention (memory-bound, left side), and sparse ops (far left) land]</p>
+<hr>
+<h2 id="Why-the-Abstraction-Is-So-Good-and-When-It-Leaks"><a href="#Why-the-Abstraction-Is-So-Good-and-When-It-Leaks" class="headerlink" title="Why the Abstraction Is So Good (and When It Leaks)"></a>Why the Abstraction Is So Good (and When It Leaks)</h2><p>CUDA’s genius is a clean layered abstraction: you think about threads, blocks, and grids. You explicitly manage shared memory. You write the kernel once and the hardware runs it across thousands of execution units.</p>
+<p>Most of this abstraction holds up well. You don’t need to think about which SM your block runs on. You don’t need to think about warp scheduling cycles. The compiler handles register allocation. The hardware handles cache management for L1 and L2.</p>
+<p>![PLACEHOLDER: Memory coalescing diagram — showing two access patterns side by side: (1) 32 threads accessing consecutive addresses → one 128-byte cache line transaction, vs (2) 32 threads accessing strided addresses → 32 separate cache line transactions. Include the transaction count and bandwidth waste for each]</p>
+<p>But the abstraction leaks in performance-critical code, and knowing where it leaks is what separates fast CUDA from correct CUDA:</p>
+<p><strong>Warp divergence</strong> leaks the SIMT abstraction. You think in threads but execute in warps. If your branches aren’t warp-coherent, you’re serializing.</p>
+<p><strong>Memory coalescing</strong> leaks the flat-array abstraction. You think “each thread accesses its own element” but the hardware loads memory in 128-byte cache lines. If your 32 threads access 32 scattered bytes across 32 different cache lines, you’re paying for 32 memory transactions instead of 1. Access <code>A[threadIdx.x]</code> (consecutive), not <code>A[threadIdx.x * stride]</code> (strided), and you coalesce 32 accesses into 1 cache line fetch.</p>
+<p><strong>Shared memory bank conflicts</strong> leak the shared memory abstraction. Shared memory is physically organized into 32 banks. If multiple threads access the same bank in the same cycle, accesses serialize. Accessing <code>smem[threadIdx.x]</code> is perfect — 32 threads hit 32 different banks simultaneously. Accessing <code>smem[threadIdx.x * 2]</code> causes 2-way bank conflicts.</p>
+<p><strong>Occupancy and register pressure</strong> leak the “threads are free” abstraction. More threads per SM means more latency hiding — but each thread needs registers, and registers are a shared resource. A kernel that uses 64 registers per thread can only fit 1,024 threads on an SM (1024 × 64 &#x3D; 65,536 registers, the SM’s total). Sometimes using fewer registers per thread (less ILP, more threads) wins over fewer threads with more ILP.</p>
+<p>![PLACEHOLDER: Shared memory bank conflict diagram — showing 32 banks in shared memory, with a conflict-free access (32 threads → 32 different banks simultaneously) vs a 2-way bank conflict (threads 0 and 16 both hit bank 0, serialized), and the resulting cycle cost difference]</p>
+<p>These aren’t bugs in CUDA — they’re places where the hardware reality shows through the software model. Understanding them is the whole game.</p>
+<hr>
+<h2 id="A-Note-on-What’s-Coming"><a href="#A-Note-on-What’s-Coming" class="headerlink" title="A Note on What’s Coming"></a>A Note on What’s Coming</h2><p>There’s a thread that runs through this entire post that I haven’t pulled on directly: the gap between when you issue a memory request and when the data actually arrives. 466 cycles for global memory. The GPU’s answer to this is warp switching — keep enough warps resident so that by the time you cycle back around, the data is there. That works. But it’s a reactive strategy. You’re hiding latency by filling it with other work.</p>
+<p>The more aggressive answer is to not wait for the latency at all — to issue the memory request <em>before you actually need the data</em>, so that by the time your computation reaches that point, the data is already sitting in cache. That’s <strong>prefetching</strong>, and it’s a deep rabbit hole.</p>
+<p>There are two flavors of it. <strong>Hardware prefetching</strong> is automatic — the memory controller watches your access patterns and speculatively fetches cache lines it predicts you’ll need next. It works well for regular, strided patterns (sequential array traversal, for instance) and breaks down badly on irregular access patterns. <strong>Software prefetching</strong> is explicit — the programmer (or compiler) inserts prefetch instructions ahead in the instruction stream, manually decoupling the load from the use. In CUDA this shows up as <code>__builtin_prefetch</code> or async copies via <code>cp.async</code> in PTX, which are the foundation of techniques like double-buffering and software pipelining in high-performance kernels.</p>
+<p>The next post goes deep on all of this: <em>Ahead of the Pipeline: A Deep Dive into Prefetching Techniques</em>. Hardware prefetchers, their heuristics and failure modes, software prefetch hints, compiler auto-prefetch, and how modern GPU kernels use async copy pipelines to completely overlap compute and memory transfers. If the latency numbers in this post bothered you — they should — that’s the post that explains what you actually do about them.</p>
+<hr>
+<h2 id="The-Closing-Thought"><a href="#The-Closing-Thought" class="headerlink" title="The Closing Thought"></a>The Closing Thought</h2><p>When you look at a GPU kernel from this angle — SM, warp, shared memory, latency hiding, register pressure — what strikes me is how much of it is a coherent response to one problem: <em>how do you keep thousands of execution units busy when memory is 466 cycles away?</em></p>
+<p>The thread hierarchy is the answer. Blocks give you cooperation. Warps give you efficient SIMD. The register file being enormous gives you free context switching between warps. Shared memory gives you a fast scratchpad to reuse data within a block. The warp scheduler gives you latency hiding. Every piece solves some part of the same problem.</p>
+<p>The CUDA programming model is then a clean API over all of this — you manage the parts that matter (shared memory, grid dimensions, block size) and the hardware handles the rest. It leaks when you push it hard, but it holds for the vast majority of code.</p>
+<p>What I find genuinely elegant here is that the leaks are <em>predictable</em>. Once you understand warps, you understand warp divergence. Once you understand cache lines, you understand coalescing. The abstraction doesn’t lie to you — it just doesn’t tell you everything until you go looking.</p>
+<p>Go looking.</p>
+<hr>
+<p><strong>Further reading</strong></p>
+<ul>
+<li>NVIDIA CUDA Programming Guide — the canonical reference, everything here and much more</li>
+<li>NVIDIA CUDA Refresher blog series — clean overview of the programming model</li>
+<li>Jia et al. (2018), <em>Dissecting the NVIDIA Volta GPU Architecture via Microbenchmarking</em> — if you want to actually measure what the latency numbers are, this is how it’s done</li>
+<li>Volkov (2010), <em>Better Performance at Lower Occupancy</em> — the paper that reframed how people think about occupancy</li>
+</ul>
+<hr>
+<p><em>— Shyam-24o7</em></p>
+
+  </div>
+
+  <footer class="post-full-footer">
+    
+    <div class="post-tags">
+      <span class="tags-label">Tags:</span>
+      
+      <a href="/tags/GPU/" class="tag-pill">GPU</a>
+      
+      <a href="/tags/CUDA/" class="tag-pill">CUDA</a>
+      
+      <a href="/tags/Hardware/" class="tag-pill">Hardware</a>
+      
+      <a href="/tags/Computer-Architecture/" class="tag-pill">Computer Architecture</a>
+      
+    </div>
+    
+    <div class="post-nav">
+      
+      <a href="/2026/03/15/ahead-of-the-pipeline-a-deep-dive-into-prefetching/" class="post-nav-link prev-post">&larr; Ahead of the Pipeline: A Deep Dive into Prefetching Techniques</a>
+      
+      
+    </div>
+  </footer>
+</article>
+
+      </div>
+      
+    </div>
+  </main>
+
+  <footer class="site-footer">
+  <div class="container">
+    <p>&copy; 2026 Shyam-24o7</p>
+  </div>
+</footer>
+
+
+  <!-- Scroll-to-top button -->
+  <button id="scroll-top" aria-label="Back to top">&#8593;</button>
+
+  <!-- Search index (embedded, no extra package needed) -->
+  <script>
+  window.__searchIndex = [{"title":"Inside the GPU: CUDA, Threads, and the Architecture That Makes It All Work","path":"/2026/03/25/inside-the-gpu-cuda-memory-architecture-and-hierarchy/","date":"2026-03-25","tags":["GPU","CUDA","Hardware","Computer Architecture"],"excerpt":"Thousands of threads. One instruction. This is how GPUs think. If you’ve read my previous post on tradeoffs in hardware, you already know the core intuition: CPUs optimize for latency, GPUs optimize for throughput. One fat sports car vs hundreds of bicycles. That framing is clean, but it’s also a bit unsatisfying once you start asking how . How exactly does a GPU achieve that throughput? What’s actually happening when you launch a CUDA kernel? What does “thousands of threads” even mean at the ha"},{"title":"Tradeoffs: The Core Essence of Hardware Optimization","path":"/2026/02/28/tradeoffs-core-essence-hardware-optimization/","date":"2026-02-28","tags":["Hardware","Computer Architecture"],"excerpt":"Everything in hardware is a negotiation — and that’s exactly why it’s beautiful. If there’s one thing studying computer architecture has genuinely rewired in how I think, it’s this: there is no perfect design . Every single hardware decision you make is a negotiation. You want more performance? Great….pay with power. Want to save area? Sure… watch your latency climb. Want to go faster? Hope you’re not memory-bound, because the memory wall does not care about your ambitions. And this isn’t some p"},{"title":"Ahead of the Pipeline: A Deep Dive into Prefetching Techniques","path":"/2026/03/15/ahead-of-the-pipeline-a-deep-dive-into-prefetching/","date":"2026-03-15","tags":["Hardware","Computer Architecture"],"excerpt":"Coming up soon!"},{"title":"Quantization and Pruning: A Structured Survey of Model Compression","path":"/2026/03/04/quantization-pruning-structured-survey-model-compression/","date":"2026-03-04","tags":["Hardware","AI/ML","Quantization"],"excerpt":"The weights don’t lie — most of them are just dead weight. If there’s one thing that becomes obvious once you start thinking seriously about deploying neural networks, it’s that scale is a trap. The models that researchers celebrate for benchmark records are routinely too large to run usefully on anything that isn’t a server rack. Language models with hundreds of billions of parameters. Vision transformers that barely fit in GPU memory. And the gap between what research produces and what actual "}];
+  </script>
+
+  
+<script src="/js/main.js"></script>
+
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof renderMathInElement !== 'undefined') {
+        renderMathInElement(document.body, {
+          delimiters: [
+            { left: "$$",  right: "$$",  display: true  },
+            { left: "\\[", right: "\\]", display: true  },
+            { left: "$",   right: "$",   display: false },
+            { left: "\\(", right: "\\)", display: false }
+          ],
+          throwOnError: false
+        });
+      }
+    });
+  </script>
+</body>
+</html>
