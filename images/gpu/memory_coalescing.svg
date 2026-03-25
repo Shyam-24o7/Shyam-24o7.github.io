@@ -1,0 +1,62 @@
+﻿<svg width="100%" viewBox="0 0 680 320" xmlns="http://www.w3.org/2000/svg">
+<rect width="100%" height="100%" fill="#0b0c14" rx="6"/>
+
+<text x="340" y="22" text-anchor="middle" dominant-baseline="central" style="fill:rgb(232, 240, 255);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;font-weight:500">Global memory coalescing — access patterns</text>
+
+<!-- Left: Coalesced -->
+<text x="160" y="48" text-anchor="middle" dominant-baseline="central" style="fill:rgb(0, 214, 162);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;font-weight:600">Coalesced</text>
+<text x="160" y="64" text-anchor="middle" dominant-baseline="central" style="fill:rgb(112, 130, 158);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:11px">32 threads → 32 consecutive addresses</text>
+
+<!-- Thread labels (left) -->
+<text x="30" y="96" text-anchor="start" dominant-baseline="central" style="fill:rgb(112, 130, 158);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:10px">T0–T31</text>
+
+<!-- 8 thread blocks (4 shown + ...) representing 32 threads in a row -->
+<!-- Show threads as small boxes -->
+<rect x="30" y="108" width="280" height="28" rx="3" fill="rgb(5, 54, 42)" stroke="rgb(0, 214, 162)" stroke-width="0.8"/>
+<text x="170" y="122" text-anchor="middle" dominant-baseline="central" style="fill:rgb(112, 244, 200);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:11px;font-weight:500">32 threads, consecutive addresses</text>
+
+<!-- Arrow down -->
+<line x1="170" y1="138" x2="170" y2="155" style="stroke:rgb(0, 214, 162);stroke-width:1.5"/>
+<polygon points="164,153 170,163 176,153" fill="rgb(0, 214, 162)"/>
+
+<!-- One cache line -->
+<rect x="30" y="165" width="280" height="28" rx="3" fill="rgb(5, 54, 42)" stroke="rgb(0, 214, 162)" stroke-width="1.5"/>
+<text x="170" y="179" text-anchor="middle" dominant-baseline="central" style="fill:rgb(0, 214, 162);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:11px;font-weight:500">1 × 128-byte transaction</text>
+
+<text x="170" y="210" text-anchor="middle" dominant-baseline="central" style="fill:rgb(0, 214, 162);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:12px;font-weight:600">1 memory request</text>
+<text x="170" y="226" text-anchor="middle" dominant-baseline="central" style="fill:rgb(112, 130, 158);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:10px">all 128 bytes used · 100% efficiency</text>
+
+<!-- Divider -->
+<line x1="340" y1="40" x2="340" y2="280" stroke="rgba(222,220,209,0.2)" stroke-width="0.5" stroke-dasharray="4 4"/>
+
+<!-- Right: Strided/uncoalesced -->
+<text x="510" y="48" text-anchor="middle" dominant-baseline="central" style="fill:rgb(255, 110, 110);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;font-weight:600">Strided (uncoalesced)</text>
+<text x="510" y="64" text-anchor="middle" dominant-baseline="central" style="fill:rgb(112, 130, 158);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:11px">32 threads → every 32nd address</text>
+
+<text x="360" y="96" text-anchor="start" dominant-baseline="central" style="fill:rgb(112, 130, 158);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:10px">T0–T31</text>
+
+<rect x="360" y="108" width="280" height="28" rx="3" fill="rgb(58, 8, 8)" stroke="rgb(255, 85, 85)" stroke-width="0.8"/>
+<text x="500" y="122" text-anchor="middle" dominant-baseline="central" style="fill:rgb(255, 182, 182);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:11px;font-weight:500">32 threads, stride-32 addresses</text>
+
+<!-- Arrows down (multiple) -->
+<line x1="500" y1="138" x2="500" y2="155" style="stroke:rgb(255, 85, 85);stroke-width:1.5"/>
+<polygon points="494,153 500,163 506,153" fill="rgb(255, 110, 110)"/>
+
+<!-- 4 separate cache lines -->
+<rect x="360" y="165" width="60" height="20" rx="2" fill="rgb(42, 4, 4)" stroke="rgb(230, 70, 70)" stroke-width="0.8"/>
+<rect x="426" y="165" width="60" height="20" rx="2" fill="rgb(42, 4, 4)" stroke="rgb(230, 70, 70)" stroke-width="0.8"/>
+<rect x="492" y="165" width="60" height="20" rx="2" fill="rgb(42, 4, 4)" stroke="rgb(230, 70, 70)" stroke-width="0.8"/>
+<rect x="558" y="165" width="60" height="20" rx="2" fill="rgb(42, 4, 4)" stroke="rgb(230, 70, 70)" stroke-width="0.8"/>
+<text x="390" y="175" text-anchor="middle" dominant-baseline="central" style="fill:rgb(255, 110, 110);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px">TX 1</text>
+<text x="456" y="175" text-anchor="middle" dominant-baseline="central" style="fill:rgb(255, 110, 110);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px">TX 2</text>
+<text x="522" y="175" text-anchor="middle" dominant-baseline="central" style="fill:rgb(255, 110, 110);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px">TX 3</text>
+<text x="588" y="175" text-anchor="middle" dominant-baseline="central" style="fill:rgb(255, 110, 110);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px">… ×32</text>
+
+<text x="500" y="210" text-anchor="middle" dominant-baseline="central" style="fill:rgb(255, 110, 110);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:12px;font-weight:600">Up to 32 memory requests</text>
+<text x="500" y="226" text-anchor="middle" dominant-baseline="central" style="fill:rgb(112, 130, 158);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:10px">1 byte used per 128-byte fetch · ~3% efficiency</text>
+
+<!-- Footer -->
+<rect x="30" y="258" width="618" height="38" rx="6" fill="rgb(18, 22, 36)" stroke="rgb(66, 82, 108)" stroke-width="0.5"/>
+<text x="339" y="272" text-anchor="middle" dominant-baseline="central" style="fill:rgb(200, 214, 232);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:12px;font-weight:500">Rule: thread i accesses address base + i → single coalesced transaction per warp</text>
+<text x="339" y="288" text-anchor="middle" dominant-baseline="central" style="fill:rgb(66, 82, 108);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:11px">Transposing the access pattern (AoS → SoA) is the most common coalescing fix</text>
+</svg>

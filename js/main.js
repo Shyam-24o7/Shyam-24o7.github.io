@@ -48,20 +48,27 @@
   var progressBar = document.getElementById('scroll-progress');
   var header      = document.querySelector('.site-header');
   var scrollTopBtn = document.getElementById('scroll-top');
+  var prevSy = 0;
 
   function onScroll() {
-    var sy       = window.scrollY;
-    var docH     = document.documentElement.scrollHeight - window.innerHeight;
+    var sy   = window.scrollY;
+    var docH = document.documentElement.scrollHeight - window.innerHeight;
 
     if (progressBar && docH > 0) {
       progressBar.style.width = ((sy / docH) * 100).toFixed(2) + '%';
     }
     if (header) {
       header.classList.toggle('scrolled', sy > 8);
+      if (sy > 80) {
+        header.classList.toggle('header-hidden', sy > prevSy);
+      } else {
+        header.classList.remove('header-hidden');
+      }
     }
     if (scrollTopBtn) {
       scrollTopBtn.classList.toggle('visible', sy > 400);
     }
+    prevSy = sy;
   }
 
   window.addEventListener('scroll', onScroll, { passive: true });
@@ -188,43 +195,83 @@
     if (e.key === 'Escape') closeSearch();
   });
 
-  /* ── Typewriter (home page hero only) ────────────────────── */
-  var typingEl = document.querySelector('.hero-typing');
-  if (typingEl) {
-    var phrases = [
-      'Hardware Acceleration',
-      'Computer Architecture',
-      'GPU Computing',
-      'FPGA Design',
-      'Quantum Computing',
-      'Mathematics'
-    ];
-    var pi = 0, ci = 0, deleting = false;
-
-    function tick() {
-      var phrase = phrases[pi];
-      if (!deleting) {
-        typingEl.textContent = phrase.slice(0, ci + 1);
-        ci++;
-        if (ci === phrase.length) {
-          deleting = true;
-          setTimeout(tick, 1800);
-          return;
-        }
-        setTimeout(tick, 75);
-      } else {
-        typingEl.textContent = phrase.slice(0, ci - 1);
-        ci--;
-        if (ci === 0) {
-          deleting = false;
-          pi = (pi + 1) % phrases.length;
-          setTimeout(tick, 350);
-          return;
-        }
-        setTimeout(tick, 38);
-      }
+  /* ── Topic glow (home page hero only) ───────────────────── */
+  var topicEls = Array.prototype.slice.call(document.querySelectorAll('.hero-topic'));
+  if (topicEls.length) {
+    var gi = 0;
+    function glowNext() {
+      topicEls.forEach(function(t) { t.classList.remove('glow'); });
+      topicEls[gi].classList.add('glow');
+      gi = (gi + 1) % topicEls.length;
+      setTimeout(glowNext, 1400);
     }
-    setTimeout(tick, 600);
+    setTimeout(glowNext, 800);
+  }
+
+  /* ── Post TOC ────────────────────────────────────────────── */
+  var tocNav = document.getElementById('post-toc');
+  var postContent = document.querySelector('.post-content');
+  if (tocNav && postContent) {
+    var headings = Array.prototype.slice.call(
+      postContent.querySelectorAll('h2, h3')
+    );
+    if (headings.length > 1) {
+      headings.forEach(function(h, i) {
+        if (!h.id) h.id = 'toc-h-' + i;
+      });
+      var tocHtml = '<div class="post-toc-title">Contents</div><ul class="post-toc-list">';
+      headings.forEach(function(h) {
+        var isH3 = h.tagName === 'H3';
+        tocHtml += '<li><a href="#' + h.id + '" class="post-toc-link' +
+          (isH3 ? ' post-toc-link--h3' : '') +
+          '" data-id="' + h.id + '">' +
+          h.textContent + '</a></li>';
+      });
+      tocHtml += '</ul>';
+      tocNav.innerHTML = tocHtml;
+
+      var tocLinks = Array.prototype.slice.call(tocNav.querySelectorAll('.post-toc-link'));
+
+      var lastActiveId = null;
+
+      function updateActiveToc() {
+        var scrollY = window.scrollY + 110;
+        var active = null;
+        headings.forEach(function(h) {
+          if (h.offsetTop <= scrollY) active = h.id;
+        });
+        tocLinks.forEach(function(link) {
+          link.classList.toggle('toc-active', link.getAttribute('data-id') === active);
+        });
+        // Auto-scroll TOC to keep active link visible
+        if (active !== lastActiveId) {
+          lastActiveId = active;
+          var activeLink = tocNav.querySelector('.toc-active');
+          if (activeLink) {
+            var tocTop = tocNav.scrollTop;
+            var tocH   = tocNav.clientHeight;
+            var lTop   = activeLink.offsetTop;
+            var lH     = activeLink.offsetHeight;
+            // if link is outside visible TOC area, scroll it into centre
+            if (lTop < tocTop || lTop + lH > tocTop + tocH) {
+              tocNav.scrollTo({ top: lTop - tocH / 2 + lH / 2, behavior: 'smooth' });
+            }
+          }
+        }
+      }
+
+      window.addEventListener('scroll', updateActiveToc, { passive: true });
+      updateActiveToc();
+
+      tocNav.addEventListener('click', function(e) {
+        var link = e.target.closest ? e.target.closest('.post-toc-link')
+                                    : (e.target.classList.contains('post-toc-link') ? e.target : null);
+        if (!link) return;
+        e.preventDefault();
+        var target = document.getElementById(link.getAttribute('data-id'));
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
   }
 
   /* ── Hover scrollbar ─────────────────────────────────────── */

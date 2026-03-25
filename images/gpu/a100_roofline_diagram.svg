@@ -1,0 +1,120 @@
+<svg width="100%" viewBox="0 0 680 380" xmlns="http://www.w3.org/2000/svg">
+<rect width="100%" height="100%" fill="#0b0c14" rx="6"/>
+<defs>
+  <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <path d="M1 2L8 5L1 8" fill="rgb(88,108,136)"/>
+  </marker>
+</defs>
+
+<!-- Title -->
+<text x="340" y="22" text-anchor="middle" dominant-baseline="central"
+  style="fill:rgb(232,240,255);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;font-weight:600">A100 roofline model</text>
+
+<!-- ── Shaded regions ── -->
+<!-- Memory-bound region (left of ridge, x=80..390) -->
+<rect x="80" y="44" width="310" height="246" fill="rgba(5,54,42,0.12)"/>
+<!-- Compute-bound region (right of ridge, x=390..640) -->
+<rect x="390" y="44" width="250" height="246" fill="rgba(11,38,80,0.12)"/>
+
+<!-- ── Axes ── -->
+<!-- X-axis -->
+<line x1="80" y1="290" x2="648" y2="290" stroke="rgb(88,108,136)" stroke-width="1.5" marker-end="url(#arr)"/>
+<!-- Y-axis -->
+<line x1="80" y1="290" x2="80" y2="36" stroke="rgb(88,108,136)" stroke-width="1.5" marker-end="url(#arr)"/>
+
+<!-- X-axis label -->
+<text x="360" y="316" text-anchor="middle"
+  style="fill:rgb(112,130,158);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:11.5px">arithmetic intensity (FLOPs / byte)</text>
+
+<!-- Y-axis label (rotated) -->
+<text x="18" y="170" text-anchor="middle" dominant-baseline="central" transform="rotate(-90 18 170)"
+  style="fill:rgb(112,130,158);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:11.5px">performance (TFLOPS)</text>
+
+<!-- X-axis tick marks and labels -->
+<!-- scale: x=80 → 0, x=390 → 156 FLOPs/byte; so 310px = 156 units → 1.987 px/unit -->
+<!-- ticks at 0, 40, 80, 120, 156 -->
+<line x1="80"  y1="290" x2="80"  y2="296" stroke="rgb(66,82,108)" stroke-width="1"/>
+<line x1="160" y1="290" x2="160" y2="296" stroke="rgb(66,82,108)" stroke-width="1"/>
+<line x1="240" y1="290" x2="240" y2="296" stroke="rgb(66,82,108)" stroke-width="1"/>
+<line x1="320" y1="290" x2="320" y2="296" stroke="rgb(66,82,108)" stroke-width="1"/>
+<line x1="390" y1="290" x2="390" y2="296" stroke="rgb(66,82,108)" stroke-width="1"/>
+<text x="80"  y="307" text-anchor="middle" style="fill:rgb(88,108,136);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:10px">0</text>
+<text x="160" y="307" text-anchor="middle" style="fill:rgb(88,108,136);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:10px">~40</text>
+<text x="240" y="307" text-anchor="middle" style="fill:rgb(88,108,136);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:10px">~80</text>
+<text x="320" y="307" text-anchor="middle" style="fill:rgb(88,108,136);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:10px">~120</text>
+<text x="390" y="307" text-anchor="middle" style="fill:rgb(88,108,136);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:10px">156</text>
+
+<!-- Y-axis tick marks and labels -->
+<!-- scale: y=290 → 0, y=95 → 312 TFLOPS; so 195px = 312 units → 0.625 px/unit -->
+<line x1="80" y1="258" x2="74" y2="258" stroke="rgb(66,82,108)" stroke-width="1"/>
+<line x1="80" y1="228" x2="74" y2="228" stroke="rgb(66,82,108)" stroke-width="1"/>
+<line x1="80" y1="164" x2="74" y2="164" stroke="rgb(66,82,108)" stroke-width="1"/>
+<line x1="80" y1="95"  x2="74" y2="95"  stroke="rgb(66,82,108)" stroke-width="1"/>
+<text x="70" y="258" text-anchor="end" dominant-baseline="central" style="fill:rgb(88,108,136);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:10px">50</text>
+<text x="70" y="228" text-anchor="end" dominant-baseline="central" style="fill:rgb(88,108,136);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:10px">100</text>
+<text x="70" y="164" text-anchor="end" dominant-baseline="central" style="fill:rgb(88,108,136);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:10px">200</text>
+<text x="70" y="95"  text-anchor="end" dominant-baseline="central" style="fill:rgb(88,108,136);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:10px">312</text>
+
+<!-- ── Roofline ── -->
+<!-- Bandwidth slope: (80,290) → (390,95) — teal -->
+<line x1="80" y1="290" x2="390" y2="95" stroke="rgb(0,214,162)" stroke-width="2.5" stroke-linecap="round"/>
+<!-- Compute ceiling: (390,95) → (638,95) — blue -->
+<line x1="390" y1="95" x2="638" y2="95" stroke="rgb(48,148,255)" stroke-width="2.5" stroke-linecap="round"/>
+
+<!-- Roof labels -->
+<text x="185" y="185" text-anchor="middle"
+  style="fill:rgb(0,214,162);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:11px;font-weight:500">bandwidth</text>
+<text x="185" y="200" text-anchor="middle"
+  style="fill:rgb(0,214,162);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:11px">roof (~2 TB/s)</text>
+
+<text x="530" y="84" text-anchor="middle"
+  style="fill:rgb(48,148,255);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:11px;font-weight:500">compute ceiling (~312 TFLOPS FP16)</text>
+
+<!-- Region labels -->
+<text x="230" y="58" text-anchor="middle"
+  style="fill:rgb(0,214,162);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:10.5px;font-weight:500;opacity:0.8">memory-bound</text>
+<text x="520" y="58" text-anchor="middle"
+  style="fill:rgb(48,148,255);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:10.5px;font-weight:500;opacity:0.8">compute-bound</text>
+
+<!-- Ridge point -->
+<line x1="390" y1="95" x2="390" y2="290" stroke="rgba(140,160,190,0.3)" stroke-width="0.8" stroke-dasharray="4 3"/>
+<text x="390" y="322" text-anchor="middle"
+  style="fill:rgb(112,130,158);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:10px">ridge point</text>
+<text x="390" y="335" text-anchor="middle"
+  style="fill:rgb(88,108,136);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:10px">~156 FLOPs/byte</text>
+
+<!-- ── Operation points ── -->
+<!-- Attention: memory-bound, low intensity (~4 FLOPs/byte → x=88, on slope y=283) -->
+<!-- Place dot ON the roofline, with label box nearby -->
+<circle cx="104" cy="280" r="5" fill="rgb(212,130,14)"/>
+<rect x="88" y="240" width="76" height="34" rx="4" fill="rgb(52,24,2)" stroke="rgb(212,130,14)" stroke-width="0.8"/>
+<text x="126" y="253" text-anchor="middle" dominant-baseline="central"
+  style="fill:rgb(255,222,80);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:11.5px;font-weight:600">Attention</text>
+<text x="126" y="267" text-anchor="middle" dominant-baseline="central"
+  style="fill:rgb(212,130,14);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:10px">mem-bound</text>
+<line x1="126" y1="274" x2="108" y2="280" stroke="rgb(212,130,14)" stroke-width="0.8" stroke-dasharray="2 2"/>
+
+<!-- Sparse ops: memory-bound, slightly higher (~10 FLOPs/byte → x=100, slope y=272) -->
+<circle cx="150" cy="258" r="5" fill="rgb(100,116,139)"/>
+<rect x="165" y="234" width="78" height="34" rx="4" fill="rgb(16,20,34)" stroke="rgb(100,116,139)" stroke-width="0.8"/>
+<text x="204" y="247" text-anchor="middle" dominant-baseline="central"
+  style="fill:rgb(200,214,232);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:11.5px;font-weight:600">Sparse</text>
+<text x="204" y="261" text-anchor="middle" dominant-baseline="central"
+  style="fill:rgb(100,116,139);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:10px">mem-bound</text>
+<line x1="165" y1="252" x2="155" y2="256" stroke="rgb(100,116,139)" stroke-width="0.8" stroke-dasharray="2 2"/>
+
+<!-- GEMM: compute-bound, well right of ridge (~300+ FLOPs/byte) -->
+<circle cx="540" cy="100" r="5" fill="rgb(0,214,162)"/>
+<rect x="468" y="114" width="80" height="34" rx="4" fill="rgb(4,44,30)" stroke="rgb(0,214,162)" stroke-width="0.8"/>
+<text x="508" y="127" text-anchor="middle" dominant-baseline="central"
+  style="fill:rgb(112,244,200);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:11.5px;font-weight:600">GEMM</text>
+<text x="508" y="141" text-anchor="middle" dominant-baseline="central"
+  style="fill:rgb(0,214,162);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:10px">compute-bound</text>
+<line x1="508" y1="114" x2="540" y2="105" stroke="rgb(0,214,162)" stroke-width="0.8" stroke-dasharray="2 2"/>
+
+<!-- Footer note -->
+<rect x="30" y="351" width="620" height="24" rx="4" fill="rgb(13,17,28)" stroke="rgb(36,46,72)" stroke-width="0.5"/>
+<text x="340" y="363" text-anchor="middle" dominant-baseline="central"
+  style="fill:rgb(112,130,158);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:11px">fall left of ridge → optimize memory access · fall right → optimize compute / use tensor cores</text>
+
+</svg>

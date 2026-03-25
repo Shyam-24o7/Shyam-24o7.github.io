@@ -1,0 +1,96 @@
+﻿<svg width="100%" viewBox="0 0 680 320" xmlns="http://www.w3.org/2000/svg">
+<rect width="100%" height="100%" fill="#0b0c14" rx="6"/>
+
+<text x="340" y="22" text-anchor="middle" dominant-baseline="central" style="fill:rgb(232, 240, 255);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;font-weight:500">Shared memory bank conflicts</text>
+
+<!-- Left: No conflict -->
+<text x="160" y="46" text-anchor="middle" dominant-baseline="central" style="fill:rgb(0, 214, 162);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;font-weight:600">Conflict-free</text>
+<text x="160" y="62" text-anchor="middle" dominant-baseline="central" style="fill:rgb(112, 130, 158);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:11px">thread i → bank i (1 cycle)</text>
+
+<!-- 8 thread boxes -->
+<rect x="20" y="76" width="28" height="20" rx="2" fill="rgb(5, 54, 42)" stroke="rgb(0, 214, 162)" stroke-width="0.8"/><text x="34" y="86" text-anchor="middle" dominant-baseline="central" style="fill:rgb(112, 244, 200);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px">T0</text>
+<rect x="52" y="76" width="28" height="20" rx="2" fill="rgb(5, 54, 42)" stroke="rgb(0, 214, 162)" stroke-width="0.8"/><text x="66" y="86" text-anchor="middle" dominant-baseline="central" style="fill:rgb(112, 244, 200);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px">T1</text>
+<rect x="84" y="76" width="28" height="20" rx="2" fill="rgb(5, 54, 42)" stroke="rgb(0, 214, 162)" stroke-width="0.8"/><text x="98" y="86" text-anchor="middle" dominant-baseline="central" style="fill:rgb(112, 244, 200);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px">T2</text>
+<rect x="116" y="76" width="28" height="20" rx="2" fill="rgb(5, 54, 42)" stroke="rgb(0, 214, 162)" stroke-width="0.8"/><text x="130" y="86" text-anchor="middle" dominant-baseline="central" style="fill:rgb(112, 244, 200);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px">T3</text>
+<rect x="148" y="76" width="28" height="20" rx="2" fill="rgb(5, 54, 42)" stroke="rgb(0, 214, 162)" stroke-width="0.8"/><text x="162" y="86" text-anchor="middle" dominant-baseline="central" style="fill:rgb(112, 244, 200);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px">T4</text>
+<rect x="180" y="76" width="28" height="20" rx="2" fill="rgb(5, 54, 42)" stroke="rgb(0, 214, 162)" stroke-width="0.8"/><text x="194" y="86" text-anchor="middle" dominant-baseline="central" style="fill:rgb(112, 244, 200);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px">T5</text>
+<rect x="212" y="76" width="28" height="20" rx="2" fill="rgb(5, 54, 42)" stroke="rgb(0, 214, 162)" stroke-width="0.8"/><text x="226" y="86" text-anchor="middle" dominant-baseline="central" style="fill:rgb(112, 244, 200);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px">T6</text>
+<rect x="244" y="76" width="28" height="20" rx="2" fill="rgb(5, 54, 42)" stroke="rgb(0, 214, 162)" stroke-width="0.8"/><text x="258" y="86" text-anchor="middle" dominant-baseline="central" style="fill:rgb(112, 244, 200);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px">T7</text>
+
+<!-- Straight arrows down -->
+<line x1="34" y1="97" x2="34" y2="116" style="stroke:rgb(0, 214, 162);stroke-width:1"/>
+<line x1="66" y1="97" x2="66" y2="116" style="stroke:rgb(0, 214, 162);stroke-width:1"/>
+<line x1="98" y1="97" x2="98" y2="116" style="stroke:rgb(0, 214, 162);stroke-width:1"/>
+<line x1="130" y1="97" x2="130" y2="116" style="stroke:rgb(0, 214, 162);stroke-width:1"/>
+<line x1="162" y1="97" x2="162" y2="116" style="stroke:rgb(0, 214, 162);stroke-width:1"/>
+<line x1="194" y1="97" x2="194" y2="116" style="stroke:rgb(0, 214, 162);stroke-width:1"/>
+<line x1="226" y1="97" x2="226" y2="116" style="stroke:rgb(0, 214, 162);stroke-width:1"/>
+<line x1="258" y1="97" x2="258" y2="116" style="stroke:rgb(0, 214, 162);stroke-width:1"/>
+
+<!-- 8 bank boxes -->
+<rect x="20" y="118" width="28" height="20" rx="2" fill="rgb(5, 54, 42)" stroke="rgb(0, 214, 162)" stroke-width="1"/><text x="34" y="128" text-anchor="middle" dominant-baseline="central" style="fill:rgb(0, 214, 162);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px">B0</text>
+<rect x="52" y="118" width="28" height="20" rx="2" fill="rgb(5, 54, 42)" stroke="rgb(0, 214, 162)" stroke-width="1"/><text x="66" y="128" text-anchor="middle" dominant-baseline="central" style="fill:rgb(0, 214, 162);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px">B1</text>
+<rect x="84" y="118" width="28" height="20" rx="2" fill="rgb(5, 54, 42)" stroke="rgb(0, 214, 162)" stroke-width="1"/><text x="98" y="128" text-anchor="middle" dominant-baseline="central" style="fill:rgb(0, 214, 162);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px">B2</text>
+<rect x="116" y="118" width="28" height="20" rx="2" fill="rgb(5, 54, 42)" stroke="rgb(0, 214, 162)" stroke-width="1"/><text x="130" y="128" text-anchor="middle" dominant-baseline="central" style="fill:rgb(0, 214, 162);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px">B3</text>
+<rect x="148" y="118" width="28" height="20" rx="2" fill="rgb(5, 54, 42)" stroke="rgb(0, 214, 162)" stroke-width="1"/><text x="162" y="128" text-anchor="middle" dominant-baseline="central" style="fill:rgb(0, 214, 162);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px">B4</text>
+<rect x="180" y="118" width="28" height="20" rx="2" fill="rgb(5, 54, 42)" stroke="rgb(0, 214, 162)" stroke-width="1"/><text x="194" y="128" text-anchor="middle" dominant-baseline="central" style="fill:rgb(0, 214, 162);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px">B5</text>
+<rect x="212" y="118" width="28" height="20" rx="2" fill="rgb(5, 54, 42)" stroke="rgb(0, 214, 162)" stroke-width="1"/><text x="226" y="128" text-anchor="middle" dominant-baseline="central" style="fill:rgb(0, 214, 162);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px">B6</text>
+<rect x="244" y="118" width="28" height="20" rx="2" fill="rgb(5, 54, 42)" stroke="rgb(0, 214, 162)" stroke-width="1"/><text x="258" y="128" text-anchor="middle" dominant-baseline="central" style="fill:rgb(0, 214, 162);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px">B7</text>
+
+<text x="160" y="158" text-anchor="middle" dominant-baseline="central" style="fill:rgb(0, 214, 162);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:12px;font-weight:600">1 cycle — all parallel</text>
+<text x="160" y="173" text-anchor="middle" dominant-baseline="central" style="fill:rgb(112, 130, 158);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:10px">T0→B0, T1→B1 … T7→B7</text>
+
+<!-- Divider -->
+<line x1="340" y1="40" x2="340" y2="280" stroke="rgba(222,220,209,0.2)" stroke-width="0.5" stroke-dasharray="4 4"/>
+
+<!-- Right: 2-way bank conflict -->
+<text x="510" y="46" text-anchor="middle" dominant-baseline="central" style="fill:rgb(255, 110, 110);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;font-weight:600">2-way bank conflict</text>
+<text x="510" y="62" text-anchor="middle" dominant-baseline="central" style="fill:rgb(112, 130, 158);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:11px">T0 and T4 both hit bank 0</text>
+
+<!-- Thread boxes (right) -->
+<rect x="360" y="76" width="28" height="20" rx="2" fill="rgb(58, 8, 8)" stroke="rgb(255, 85, 85)" stroke-width="1.5"/><text x="374" y="86" text-anchor="middle" dominant-baseline="central" style="fill:rgb(255, 182, 182);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px">T0</text>
+<rect x="392" y="76" width="28" height="20" rx="2" fill="rgb(5, 54, 42)" stroke="rgb(0, 214, 162)" stroke-width="0.8"/><text x="406" y="86" text-anchor="middle" dominant-baseline="central" style="fill:rgb(112, 244, 200);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px">T1</text>
+<rect x="424" y="76" width="28" height="20" rx="2" fill="rgb(5, 54, 42)" stroke="rgb(0, 214, 162)" stroke-width="0.8"/><text x="438" y="86" text-anchor="middle" dominant-baseline="central" style="fill:rgb(112, 244, 200);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px">T2</text>
+<rect x="456" y="76" width="28" height="20" rx="2" fill="rgb(5, 54, 42)" stroke="rgb(0, 214, 162)" stroke-width="0.8"/><text x="470" y="86" text-anchor="middle" dominant-baseline="central" style="fill:rgb(112, 244, 200);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px">T3</text>
+<rect x="488" y="76" width="28" height="20" rx="2" fill="rgb(58, 8, 8)" stroke="rgb(255, 85, 85)" stroke-width="1.5"/><text x="502" y="86" text-anchor="middle" dominant-baseline="central" style="fill:rgb(255, 182, 182);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px">T4</text>
+<rect x="520" y="76" width="28" height="20" rx="2" fill="rgb(5, 54, 42)" stroke="rgb(0, 214, 162)" stroke-width="0.8"/><text x="534" y="86" text-anchor="middle" dominant-baseline="central" style="fill:rgb(112, 244, 200);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px">T5</text>
+<rect x="552" y="76" width="28" height="20" rx="2" fill="rgb(5, 54, 42)" stroke="rgb(0, 214, 162)" stroke-width="0.8"/><text x="566" y="86" text-anchor="middle" dominant-baseline="central" style="fill:rgb(112, 244, 200);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px">T6</text>
+<rect x="584" y="76" width="28" height="20" rx="2" fill="rgb(5, 54, 42)" stroke="rgb(0, 214, 162)" stroke-width="0.8"/><text x="598" y="86" text-anchor="middle" dominant-baseline="central" style="fill:rgb(112, 244, 200);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px">T7</text>
+
+<!-- T0 and T4 both arrow to B0 -->
+<line x1="374" y1="97" x2="374" y2="108" style="stroke:rgb(255, 85, 85);stroke-width:1.5"/>
+<path d="M374 108 L360 116" style="fill:none;stroke:rgb(255, 85, 85);stroke-width:1.5"/>
+<line x1="502" y1="97" x2="502" y2="108" style="stroke:rgb(255, 85, 85);stroke-width:1.5"/>
+<path d="M502 108 L376 116" style="fill:none;stroke:rgb(255, 85, 85);stroke-width:1.5"/>
+<!-- Other threads normal -->
+<line x1="406" y1="97" x2="406" y2="116" style="stroke:rgb(0, 214, 162);stroke-width:1"/>
+<line x1="438" y1="97" x2="438" y2="116" style="stroke:rgb(0, 214, 162);stroke-width:1"/>
+<line x1="470" y1="97" x2="470" y2="116" style="stroke:rgb(0, 214, 162);stroke-width:1"/>
+<line x1="534" y1="97" x2="534" y2="116" style="stroke:rgb(0, 214, 162);stroke-width:1"/>
+<line x1="566" y1="97" x2="566" y2="116" style="stroke:rgb(0, 214, 162);stroke-width:1"/>
+<line x1="598" y1="97" x2="598" y2="116" style="stroke:rgb(0, 214, 162);stroke-width:1"/>
+
+<!-- Bank boxes (right) — B0 highlighted as conflicted -->
+<rect x="360" y="118" width="28" height="20" rx="2" fill="rgb(58, 8, 8)" stroke="rgb(239, 68, 68)" stroke-width="2"/><text x="374" y="128" text-anchor="middle" dominant-baseline="central" style="fill:rgb(255, 110, 110);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px;font-weight:700">B0!</text>
+<rect x="392" y="118" width="28" height="20" rx="2" fill="rgb(5, 54, 42)" stroke="rgb(0, 214, 162)" stroke-width="1"/><text x="406" y="128" text-anchor="middle" dominant-baseline="central" style="fill:rgb(0, 214, 162);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px">B1</text>
+<rect x="424" y="118" width="28" height="20" rx="2" fill="rgb(5, 54, 42)" stroke="rgb(0, 214, 162)" stroke-width="1"/><text x="438" y="128" text-anchor="middle" dominant-baseline="central" style="fill:rgb(0, 214, 162);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px">B2</text>
+<rect x="456" y="118" width="28" height="20" rx="2" fill="rgb(5, 54, 42)" stroke="rgb(0, 214, 162)" stroke-width="1"/><text x="470" y="128" text-anchor="middle" dominant-baseline="central" style="fill:rgb(0, 214, 162);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px">B3</text>
+<rect x="488" y="118" width="28" height="20" rx="2" fill="rgb(5, 54, 42)" stroke="rgb(0, 214, 162)" stroke-width="1"/><text x="502" y="128" text-anchor="middle" dominant-baseline="central" style="fill:rgb(0, 214, 162);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px">B4</text>
+<rect x="520" y="118" width="28" height="20" rx="2" fill="rgb(5, 54, 42)" stroke="rgb(0, 214, 162)" stroke-width="1"/><text x="534" y="128" text-anchor="middle" dominant-baseline="central" style="fill:rgb(0, 214, 162);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px">B5</text>
+<rect x="552" y="118" width="28" height="20" rx="2" fill="rgb(5, 54, 42)" stroke="rgb(0, 214, 162)" stroke-width="1"/><text x="566" y="128" text-anchor="middle" dominant-baseline="central" style="fill:rgb(0, 214, 162);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px">B6</text>
+<rect x="584" y="118" width="28" height="20" rx="2" fill="rgb(5, 54, 42)" stroke="rgb(0, 214, 162)" stroke-width="1"/><text x="598" y="128" text-anchor="middle" dominant-baseline="central" style="fill:rgb(0, 214, 162);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px">B7</text>
+
+<text x="510" y="158" text-anchor="middle" dominant-baseline="central" style="fill:rgb(255, 110, 110);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:12px;font-weight:600">2 cycles — serialized at B0</text>
+<text x="510" y="173" text-anchor="middle" dominant-baseline="central" style="fill:rgb(112, 130, 158);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:10px">T0 and T4 queued — others finish in 1 cycle</text>
+
+<!-- Timing diagram -->
+<rect x="360" y="190" width="280" height="18" rx="2" fill="rgb(5, 54, 42)" stroke="rgb(0, 214, 162)" stroke-width="0.5"/>
+<text x="500" y="199" text-anchor="middle" dominant-baseline="central" style="fill:rgb(0, 214, 162);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px">cycle 1 — T1,T2,T3,T5,T6,T7 + T0 access B0</text>
+<rect x="360" y="212" width="280" height="18" rx="2" fill="rgb(58, 8, 8)" stroke="rgb(239, 68, 68)" stroke-width="0.5"/>
+<text x="500" y="221" text-anchor="middle" dominant-baseline="central" style="fill:rgb(255, 110, 110);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:9px">cycle 2 — T4 retries B0 (stall)</text>
+
+<!-- Footer -->
+<rect x="30" y="255" width="618" height="38" rx="6" fill="rgb(18, 22, 36)" stroke="rgb(66, 82, 108)" stroke-width="0.5"/>
+<text x="339" y="270" text-anchor="middle" dominant-baseline="central" style="fill:rgb(200, 214, 232);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:12px;font-weight:500">32 banks — address mod 32 determines the bank. Fix: pad shared mem arrays or reorder access.</text>
+<text x="339" y="285" text-anchor="middle" dominant-baseline="central" style="fill:rgb(66, 82, 108);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:11px">Conflict-free: each thread hits a different bank — all 32 accesses complete in one cycle.</text>
+</svg>

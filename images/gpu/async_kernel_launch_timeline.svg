@@ -1,0 +1,98 @@
+<svg width="100%" viewBox="0 0 680 292" xmlns="http://www.w3.org/2000/svg">
+<rect width="100%" height="100%" fill="#0b0c14" rx="6"/>
+<defs>
+  <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <path d="M1 2L8 5L1 8" fill="rgb(88,108,136)"/>
+  </marker>
+</defs>
+
+<!-- Title -->
+<text x="340" y="22" text-anchor="middle" dominant-baseline="central"
+  style="fill:rgb(232,240,255);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;font-weight:600">Async kernel launch — CPU and GPU overlap</text>
+
+<!-- Time axis -->
+<text x="96" y="43" text-anchor="end" dominant-baseline="central"
+  style="fill:rgb(112,130,158);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:11px">Time →</text>
+<line x1="100" y1="43" x2="652" y2="43" stroke="rgb(88,108,136)" stroke-width="1.5" marker-end="url(#arr)"/>
+
+<!-- Row labels -->
+<text x="96" y="86" text-anchor="end" dominant-baseline="central"
+  style="fill:rgb(170,185,210);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:12px;font-weight:500">CPU</text>
+<text x="96" y="160" text-anchor="end" dominant-baseline="central"
+  style="fill:rgb(170,185,210);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:12px;font-weight:500">GPU</text>
+
+<!-- Lane tracks (full-width, subtle) -->
+<rect x="100" y="63" width="548" height="46" rx="3" fill="rgb(13,17,28)" stroke="rgb(28,38,62)" stroke-width="0.5"/>
+<rect x="100" y="137" width="548" height="46" rx="3" fill="rgb(13,17,28)" stroke="rgb(28,38,62)" stroke-width="0.5"/>
+
+<!-- ── CPU blocks ── -->
+<!-- cudaMalloc -->
+<rect x="100" y="63" width="74" height="46" rx="2" fill="rgb(11,38,80)" stroke="rgb(48,148,255)" stroke-width="0.8"/>
+<text x="137" y="86" text-anchor="middle" dominant-baseline="central"
+  style="fill:rgb(147,200,255);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:10.5px;font-weight:500">cudaMalloc</text>
+
+<!-- H→D copy -->
+<rect x="174" y="63" width="74" height="46" rx="2" fill="rgb(11,38,80)" stroke="rgb(48,148,255)" stroke-width="0.8"/>
+<text x="211" y="86" text-anchor="middle" dominant-baseline="central"
+  style="fill:rgb(147,200,255);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:10.5px;font-weight:500">H→D copy</text>
+
+<!-- kernel launch -->
+<rect x="248" y="63" width="56" height="46" rx="2" fill="rgb(11,38,80)" stroke="rgb(48,148,255)" stroke-width="0.8"/>
+<text x="276" y="79" text-anchor="middle" dominant-baseline="central"
+  style="fill:rgb(147,200,255);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:10px;font-weight:500">kernel</text>
+<text x="276" y="96" text-anchor="middle" dominant-baseline="central"
+  style="fill:rgb(147,200,255);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:10px;font-weight:500">launch ↓</text>
+
+<!-- CPU continues (async) — green, same width as GPU kernel block -->
+<rect x="304" y="63" width="162" height="46" rx="2" fill="rgb(4,48,22)" stroke="rgb(50,220,120)" stroke-width="0.8"/>
+<text x="385" y="86" text-anchor="middle" dominant-baseline="central"
+  style="fill:rgb(170,248,206);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:10.5px;font-weight:500">CPU continues (async)</text>
+
+<!-- cudaDeviceSynchronize — amber, signals the sync point -->
+<rect x="466" y="63" width="90" height="46" rx="2" fill="rgb(60,26,2)" stroke="rgb(255,162,0)" stroke-width="0.8"/>
+<text x="511" y="79" text-anchor="middle" dominant-baseline="central"
+  style="fill:rgb(255,222,80);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:10px;font-weight:500">cuda</text>
+<text x="511" y="96" text-anchor="middle" dominant-baseline="central"
+  style="fill:rgb(255,222,80);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:10px;font-weight:500">DeviceSync</text>
+
+<!-- D→H copy -->
+<rect x="556" y="63" width="92" height="46" rx="2" fill="rgb(11,38,80)" stroke="rgb(48,148,255)" stroke-width="0.8"/>
+<text x="602" y="86" text-anchor="middle" dominant-baseline="central"
+  style="fill:rgb(147,200,255);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:10.5px;font-weight:500">D→H copy</text>
+
+<!-- ── GPU blocks ── -->
+<!-- Idle before kernel -->
+<rect x="100" y="137" width="204" height="46" rx="2" fill="rgb(16,20,34)" stroke="rgb(36,46,72)" stroke-width="0.8"/>
+<text x="202" y="160" text-anchor="middle" dominant-baseline="central"
+  style="fill:rgb(56,72,100);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:11px">idle</text>
+
+<!-- Kernel executing — aligned with CPU async block -->
+<rect x="304" y="137" width="162" height="46" rx="2" fill="rgb(5,54,42)" stroke="rgb(0,214,162)" stroke-width="0.8"/>
+<text x="385" y="160" text-anchor="middle" dominant-baseline="central"
+  style="fill:rgb(112,244,200);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:10.5px;font-weight:500">kernel executing</text>
+
+<!-- Idle after kernel -->
+<rect x="466" y="137" width="182" height="46" rx="2" fill="rgb(16,20,34)" stroke="rgb(36,46,72)" stroke-width="0.8"/>
+<text x="557" y="160" text-anchor="middle" dominant-baseline="central"
+  style="fill:rgb(56,72,100);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:11px">idle</text>
+
+<!-- ── Vertical sync markers ── -->
+<!-- launch: soft blue dashed line between kernel launch and GPU kernel start -->
+<line x1="304" y1="63" x2="304" y2="183" stroke="rgba(140,160,190,0.4)" stroke-width="0.8" stroke-dasharray="3 2"/>
+<!-- sync: amber dashed line at DeviceSync / GPU kernel end -->
+<line x1="466" y1="63" x2="466" y2="183" stroke="rgba(255,162,0,0.55)" stroke-width="1" stroke-dasharray="3 2"/>
+
+<!-- Annotation labels below rows -->
+<text x="304" y="202" text-anchor="middle" dominant-baseline="central"
+  style="fill:rgb(112,130,158);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:11px">launch (async)</text>
+<text x="466" y="202" text-anchor="middle" dominant-baseline="central"
+  style="fill:rgb(255,162,0);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:11px;font-weight:500">sync — CPU blocks here</text>
+
+<!-- Footer note -->
+<rect x="30" y="217" width="620" height="50" rx="5" fill="rgb(13,17,28)" stroke="rgb(36,46,72)" stroke-width="0.5"/>
+<text x="340" y="233" text-anchor="middle" dominant-baseline="central"
+  style="fill:rgb(200,214,232);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:11px">CPU doesn't wait for GPU to finish — returns immediately after &lt;&lt;&lt;...&gt;&gt;&gt;</text>
+<text x="340" y="251" text-anchor="middle" dominant-baseline="central"
+  style="fill:rgb(112,130,158);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:11px">use cudaDeviceSynchronize() to block until the GPU completes</text>
+
+</svg>
