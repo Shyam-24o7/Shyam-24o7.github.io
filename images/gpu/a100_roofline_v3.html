@@ -142,130 +142,205 @@
 
         </aside>
         <div class="main-content">
-          <div class="tag-page">
-  <h1 class="page-title">
-    Tag: <span class="accent">#Hardware</span>
-    <span class="tag-post-count">(4 posts)</span>
-  </h1>
-
-  <div class="post-list">
-    
-      <article class="post-item">
-  <header class="post-item-header">
-    <h2 class="post-item-title">
-      <a href="/2026/03/25/ahead-of-the-pipeline-a-deep-dive-into-prefetching/">Ahead of the Pipeline: A Deep Dive into Prefetching Techniques</a>
-    </h2>
-    <div class="post-meta">
-      <time datetime="2026-03-24T18:30:00.000Z">2026-03-25</time>
-      
-      <span class="post-tags-inline">
-        
-        <a href="/tags/Hardware/" class="tag-pill">Hardware</a>
-        
-        <a href="/tags/Computer-Architecture/" class="tag-pill">Computer Architecture</a>
-        
-      </span>
-      
-    </div>
+          <article class="page-full">
+  <header class="post-full-header">
+    <h1 class="post-full-title"></h1>
   </header>
-  <div class="post-excerpt">
-    
-      Modern processors are only as fast as the data they can access. Prefetching — the art of fetching data before it is needed — sits at the intersection of hardware intuition and compiler intelligence. This post explores both hardware and software prefetching strategies and the tradeoffs that define them.
-    
-  </div>
-  <a href="/2026/03/25/ahead-of-the-pipeline-a-deep-dive-into-prefetching/" class="read-more">Read more &rarr;</a>
-</article>
-
-    
-      <article class="post-item">
-  <header class="post-item-header">
-    <h2 class="post-item-title">
-      <a href="/2026/03/22/inside-the-gpu-cuda-memory-architecture-and-hierarchy/">Inside the GPU: CUDA, Threads, and the Architecture That Makes It All Work</a>
-    </h2>
-    <div class="post-meta">
-      <time datetime="2026-03-21T18:30:00.000Z">2026-03-22</time>
-      
-      <span class="post-tags-inline">
-        
-        <a href="/tags/Hardware/" class="tag-pill">Hardware</a>
-        
-        <a href="/tags/GPU/" class="tag-pill">GPU</a>
-        
-        <a href="/tags/CUDA/" class="tag-pill">CUDA</a>
-        
-        <a href="/tags/Computer-Architecture/" class="tag-pill">Computer Architecture</a>
-        
-      </span>
-      
-    </div>
-  </header>
-  <div class="post-excerpt">
-    
-      GPUs aren't magic. They're just a very specific bet about parallelism — and once you understand the hardware underneath CUDA, every design decision starts making sense.
-    
-  </div>
-  <a href="/2026/03/22/inside-the-gpu-cuda-memory-architecture-and-hierarchy/" class="read-more">Read more &rarr;</a>
-</article>
-
-    
-      <article class="post-item">
-  <header class="post-item-header">
-    <h2 class="post-item-title">
-      <a href="/2026/03/04/quantization-pruning-structured-survey-model-compression/">Quantization and Pruning: A Structured Survey of Model Compression</a>
-    </h2>
-    <div class="post-meta">
-      <time datetime="2026-03-03T18:30:00.000Z">2026-03-04</time>
-      
-      <span class="post-tags-inline">
-        
-        <a href="/tags/AI-ML/" class="tag-pill">AI/ML</a>
-        
-        <a href="/tags/Quantization/" class="tag-pill">Quantization</a>
-        
-        <a href="/tags/Hardware/" class="tag-pill">Hardware</a>
-        
-      </span>
-      
-    </div>
-  </header>
-  <div class="post-excerpt">
-    
-      Models keep getting bigger. The hardware they run on doesn't. Quantization and pruning are the two main tools for closing that gap — but both are more hardware-dependent than people give them credit for.
-    
-  </div>
-  <a href="/2026/03/04/quantization-pruning-structured-survey-model-compression/" class="read-more">Read more &rarr;</a>
-</article>
-
-    
-      <article class="post-item">
-  <header class="post-item-header">
-    <h2 class="post-item-title">
-      <a href="/2026/02/28/tradeoffs-core-essence-hardware-optimization/">Tradeoffs: The Core Essence of Hardware Optimization</a>
-    </h2>
-    <div class="post-meta">
-      <time datetime="2026-02-27T18:30:00.000Z">2026-02-28</time>
-      
-      <span class="post-tags-inline">
-        
-        <a href="/tags/Hardware/" class="tag-pill">Hardware</a>
-        
-        <a href="/tags/Computer-Architecture/" class="tag-pill">Computer Architecture</a>
-        
-      </span>
-      
-    </div>
-  </header>
-  <div class="post-excerpt">
-    
-      Every hardware design decision is fundamentally a tradeoff. Understanding how to navigate the space between performance, power, area, and accuracy is what separates good engineering from great engineering.
-    
-  </div>
-  <a href="/2026/02/28/tradeoffs-core-essence-hardware-optimization/" class="read-more">Read more &rarr;</a>
-</article>
-
-    
-  </div>
+  <div class="post-content">
+    <div style="padding: 1rem 0 0.5rem;">
+<div style="display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 12px; font-size: 12px; color: var(--color-text-secondary);">
+  <span style="display: flex; align-items: center; gap: 5px;"><span style="width: 28px; height: 3px; background: #3094ff; display:inline-block;"></span>Bandwidth roof (~2 TB/s slope)</span>
+  <span style="display: flex; align-items: center; gap: 5px;"><span style="width: 28px; height: 3px; background: #00d6a2; display:inline-block;"></span>Compute ceiling (FP16 tensor ~312 TFLOPS)</span>
+  <span style="display: flex; align-items: center; gap: 5px;"><span style="width: 10px; height: 10px; border-radius: 50%; background: #ffa200; display:inline-block;"></span>Memory-bound</span>
+  <span style="display: flex; align-items: center; gap: 5px;"><span style="width: 10px; height: 10px; border-radius: 50%; background: #00d6a2; display:inline-block;"></span>Compute-bound</span>
 </div>
+<div style="position: relative; width: 100%; height: 420px;">
+  <canvas id="roofline"></canvas>
+</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
+const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)';
+const tickColor = isDark ? '#888780' : '#5F5E5A';
+const labelColor = isDark ? '#B4B2A9' : '#444441';
+const annotColor = isDark ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.18)';
+const annotText = isDark ? '#D3D1C7' : '#3d3d3a';
+
+const BW = 2000;
+const COMPUTE_CEILING = 312;
+const ridgeX = COMPUTE_CEILING / BW * 1000;
+
+const rooflineX = [];
+const rooflineY = [];
+for (let i = 0; i <= 200; i += 1) {
+  rooflineX.push(i);
+  rooflineY.push(parseFloat(Math.min(BW * i / 1000, COMPUTE_CEILING).toFixed(2)));
+}
+
+const workloads = [
+  { label: 'Embedding lookup',     x: 1,   y: 2,   color: '#ffa200', labelOffsetX:  10, labelOffsetY: -14, anchor: 'left'  },
+  { label: 'Attention (long seq)', x: 8,   y: 16,  color: '#ffa200', labelOffsetX:  10, labelOffsetY:  16, anchor: 'left'  },
+  { label: 'Sparse matmul',        x: 18,  y: 36,  color: '#ffa200', labelOffsetX:  10, labelOffsetY: -14, anchor: 'left'  },
+  { label: 'Attention (short seq)',x: 45,  y: 90,  color: '#ffa200', labelOffsetX:  10, labelOffsetY: -14, anchor: 'left'  },
+  { label: 'Conv layer',           x: 90,  y: 180, color: '#00d6a2', labelOffsetX:  10, labelOffsetY: -14, anchor: 'left'  },
+  { label: 'Dense GEMM (large)',   x: 155, y: 310, color: '#00d6a2', labelOffsetX: -10, labelOffsetY: -14, anchor: 'right' },
+  { label: 'cuBLAS FP16',          x: 190, y: 312, color: '#00d6a2', labelOffsetX: -10, labelOffsetY:  16, anchor: 'right' },
+];
+
+Chart.register({
+  id: 'ridgeAnnotation',
+  afterDraw(chart) {
+    const { ctx: c, chartArea, scales } = chart;
+    const xPx  = scales.x.getPixelForValue(ridgeX);
+    const yTop  = scales.y.getPixelForValue(COMPUTE_CEILING);
+    const yBot  = chartArea.bottom;
+
+    c.save();
+    c.setLineDash([5, 4]);
+    c.strokeStyle = annotColor;
+    c.lineWidth = 1;
+    c.beginPath(); c.moveTo(xPx, yTop); c.lineTo(xPx, yBot); c.stroke();
+    c.setLineDash([]);
+
+    const boxW = 112, boxH = 34, boxX = xPx - boxW / 2, boxY = yTop - 52;
+    c.fillStyle = isDark ? '#0d0f1a' : '#f8f7f4';
+    c.strokeStyle = isDark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.15)';
+    c.lineWidth = 0.5;
+    c.beginPath();
+    c.roundRect(boxX, boxY, boxW, boxH, 4);
+    c.fill(); c.stroke();
+
+    c.fillStyle = annotText;
+    c.font = '500 11px sans-serif';
+    c.textAlign = 'center';
+    c.fillText('ridge point', xPx, boxY + 13);
+    c.font = '11px sans-serif';
+    c.fillStyle = isDark ? '#888780' : '#5F5E5A';
+    c.fillText('\u2248' + Math.round(ridgeX) + '\u2009FLOPs/byte', xPx, boxY + 28);
+
+    c.strokeStyle = annotColor;
+    c.lineWidth = 0.5;
+    c.beginPath(); c.moveTo(xPx, boxY + boxH); c.lineTo(xPx, yTop); c.stroke();
+    c.restore();
+  }
+});
+
+Chart.register({
+  id: 'workloadLabels',
+  afterDraw(chart) {
+    const { ctx: c, scales } = chart;
+    workloads.forEach(pt => {
+      const xPx = scales.x.getPixelForValue(pt.x);
+      const yPx = scales.y.getPixelForValue(pt.y);
+      c.save();
+      c.fillStyle = annotText;
+      c.font = '11px sans-serif';
+      c.textAlign = pt.anchor;
+      c.fillText(pt.label, xPx + pt.labelOffsetX, yPx + pt.labelOffsetY);
+      c.restore();
+    });
+  }
+});
+
+const ctx = document.getElementById('roofline').getContext('2d');
+
+new Chart(ctx, {
+  type: 'scatter',
+  data: {
+    datasets: [
+      {
+        label: 'Roofline',
+        type: 'line',
+        data: rooflineX.map((x, i) => ({ x, y: rooflineY[i] })),
+        borderColor(ctx) {
+          const chart = ctx.chart;
+          const { chartArea, scales } = chart;
+          if (!chartArea) return '#3094ff';
+          const ridgeXpx = scales.x.getPixelForValue(ridgeX);
+          const ratio = Math.max(0, Math.min(1, (ridgeXpx - chartArea.left) / (chartArea.right - chartArea.left)));
+          const g = chart.ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
+          g.addColorStop(0, '#3094ff');
+          g.addColorStop(Math.max(0, ratio - 0.005), '#3094ff');
+          g.addColorStop(ratio, '#00d6a2');
+          g.addColorStop(1, '#00d6a2');
+          return g;
+        },
+        borderWidth: 2.5,
+        pointRadius: 0,
+        fill: false,
+        tension: 0,
+        order: 2,
+      },
+      {
+        label: 'Workloads',
+        data: workloads.map(w => ({ x: w.x, y: w.y })),
+        backgroundColor: workloads.map(w => w.color),
+        borderColor: workloads.map(w => w.color),
+        pointRadius: 7,
+        pointHoverRadius: 9,
+        showLine: false,
+        order: 1,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label(ctx) {
+            if (ctx.datasetIndex === 1) {
+              const w = workloads[ctx.dataIndex];
+              return `${w.label}: ${w.x} FLOPs/byte → ${w.y} TFLOPS`;
+            }
+            return '';
+          }
+        },
+        filter(item) { return item.datasetIndex === 1; }
+      }
+    },
+    scales: {
+      x: {
+        type: 'linear',
+        min: 0,
+        max: 200,
+        title: {
+          display: true,
+          text: 'Arithmetic intensity (FLOPs per byte of DRAM traffic)',
+          color: labelColor,
+          font: { size: 12 }
+        },
+        ticks: { color: tickColor, stepSize: 20 },
+        grid: { color: gridColor }
+      },
+      y: {
+        type: 'linear',
+        min: 0,
+        max: 380,
+        title: {
+          display: true,
+          text: 'Attainable performance (TFLOPS)',
+          color: labelColor,
+          font: { size: 12 }
+        },
+        ticks: {
+          color: tickColor,
+          stepSize: 50,
+          callback: v => v + ' T'
+        },
+        grid: { color: gridColor }
+      }
+    },
+    layout: { padding: { top: 20, right: 10, bottom: 8 } }
+  }
+});
+</script>
+  </div>
+</article>
 
         </div>
       </div>

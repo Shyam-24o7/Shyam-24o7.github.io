@@ -64,7 +64,7 @@
 <!-- Idle before kernel -->
 <rect x="100" y="137" width="204" height="46" rx="2" fill="rgb(16,20,34)" stroke="rgb(36,46,72)" stroke-width="0.8"/>
 <text x="202" y="160" text-anchor="middle" dominant-baseline="central"
-  style="fill:rgb(56,72,100);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:11px">idle</text>
+  style="fill:rgb(110,128,158);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:11px">idle</text>
 
 <!-- Kernel executing — aligned with CPU async block -->
 <rect x="304" y="137" width="162" height="46" rx="2" fill="rgb(5,54,42)" stroke="rgb(0,214,162)" stroke-width="0.8"/>
@@ -74,7 +74,7 @@
 <!-- Idle after kernel -->
 <rect x="466" y="137" width="182" height="46" rx="2" fill="rgb(16,20,34)" stroke="rgb(36,46,72)" stroke-width="0.8"/>
 <text x="557" y="160" text-anchor="middle" dominant-baseline="central"
-  style="fill:rgb(56,72,100);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:11px">idle</text>
+  style="fill:rgb(110,128,158);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:11px">idle</text>
 
 <!-- ── Vertical sync markers ── -->
 <!-- launch: soft blue dashed line between kernel launch and GPU kernel start -->

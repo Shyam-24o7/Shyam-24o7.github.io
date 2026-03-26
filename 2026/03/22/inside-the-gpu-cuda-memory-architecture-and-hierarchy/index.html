@@ -16,6 +16,15 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
 
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-RR8ZR3TD8C"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-RR8ZR3TD8C');
+</script>
+
 <!-- Theme CSS -->
 
 <link rel="stylesheet" href="/css/style.css">
@@ -385,7 +394,177 @@
 <li>Ridge point: ~312 TFLOPS &#x2F; 2 TB&#x2F;s ≈ <strong>156 FLOPs&#x2F;byte</strong></li>
 </ul>
 <p>Dense matrix multiplication on large matrices easily exceeds 156 FLOPs&#x2F;byte and sits firmly in the compute-bound regime — which is exactly why matrix multiply maps so well to GPUs and why Tensor Cores deliver their full theoretical throughput on large GEMMs. Sparse operations, attention with short sequences, and embedding lookups are memory-bandwidth-limited and see far less benefit from raw FLOP improvements.</p>
-<p><img src="/images/gpu/a100_roofline_diagram.svg" alt="A100 roofline model — bandwidth slope meets compute ceiling at the ridge point (~156 FLOPs&#x2F;byte); GEMM sits right, attention sits left"></p>
+
+<div style="padding: 1rem 0 0.5rem;">
+<div style="display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 12px; font-size: 12px; color: var(--color-text-secondary);">
+  <span style="display: flex; align-items: center; gap: 5px;"><span style="width: 28px; height: 3px; background: #3094ff; display:inline-block;"></span>Bandwidth roof (~2 TB/s slope)</span>
+  <span style="display: flex; align-items: center; gap: 5px;"><span style="width: 28px; height: 3px; background: #00d6a2; display:inline-block;"></span>Compute ceiling (FP16 tensor ~312 TFLOPS)</span>
+  <span style="display: flex; align-items: center; gap: 5px;"><span style="width: 10px; height: 10px; border-radius: 50%; background: #ffa200; display:inline-block;"></span>Memory-bound</span>
+  <span style="display: flex; align-items: center; gap: 5px;"><span style="width: 10px; height: 10px; border-radius: 50%; background: #00d6a2; display:inline-block;"></span>Compute-bound</span>
+</div>
+<div style="position: relative; width: 100%; height: 420px;">
+  <canvas id="roofline"></canvas>
+</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+(function() {
+const BW = 2000;
+const COMPUTE_CEILING = 312;
+const ridgeX = COMPUTE_CEILING / BW * 1000;
+
+const rooflineX = [], rooflineY = [];
+for (let i = 0; i <= 200; i++) {
+  rooflineX.push(i);
+  rooflineY.push(parseFloat(Math.min(BW * i / 1000, COMPUTE_CEILING).toFixed(2)));
+}
+
+const workloads = [
+  { label: 'Embedding lookup',     x: 1,   y: 2,   color: '#ffa200', labelOffsetX:  10, labelOffsetY: -14, anchor: 'left'  },
+  { label: 'Attention (long seq)', x: 8,   y: 16,  color: '#ffa200', labelOffsetX:  10, labelOffsetY:  16, anchor: 'left'  },
+  { label: 'Sparse matmul',        x: 18,  y: 36,  color: '#ffa200', labelOffsetX:  10, labelOffsetY: -14, anchor: 'left'  },
+  { label: 'Attention (short seq)',x: 45,  y: 90,  color: '#ffa200', labelOffsetX:  10, labelOffsetY: -14, anchor: 'left'  },
+  { label: 'Conv layer',           x: 90,  y: 180, color: '#00d6a2', labelOffsetX:  10, labelOffsetY: -14, anchor: 'left'  },
+  { label: 'Dense GEMM (large)',   x: 155, y: 310, color: '#00d6a2', labelOffsetX: -10, labelOffsetY: -14, anchor: 'right' },
+  { label: 'cuBLAS FP16',          x: 190, y: 312, color: '#00d6a2', labelOffsetX: -10, labelOffsetY:  16, anchor: 'right' },
+];
+
+function getColors() {
+  const dark = !document.documentElement.classList.contains('light');
+  return {
+    dark,
+    grid:      dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)',
+    tick:      dark ? '#888780' : '#111111',
+    label:     dark ? '#B4B2A9' : '#111111',
+    annot:     dark ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.35)',
+    annotText: dark ? '#D3D1C7' : '#000000',
+    boxFill:   dark ? '#0d0f1a' : '#f5f5f5',
+    boxStroke: dark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.15)',
+  };
+}
+
+let chartInstance = null;
+
+function buildChart() {
+  if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+  const col = getColors();
+  const canvasEl = document.getElementById('roofline');
+  if (!canvasEl) return;
+
+  chartInstance = new Chart(canvasEl.getContext('2d'), {
+    type: 'scatter',
+    data: {
+      datasets: [
+        {
+          label: 'Roofline',
+          type: 'line',
+          data: rooflineX.map((x, i) => ({ x, y: rooflineY[i] })),
+          borderColor(ctx) {
+            const chart = ctx.chart;
+            const { chartArea, scales } = chart;
+            if (!chartArea) return '#3094ff';
+            const ridgeXpx = scales.x.getPixelForValue(ridgeX);
+            const ratio = Math.max(0, Math.min(1, (ridgeXpx - chartArea.left) / (chartArea.right - chartArea.left)));
+            const g = chart.ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
+            g.addColorStop(0, '#3094ff');
+            g.addColorStop(Math.max(0, ratio - 0.005), '#3094ff');
+            g.addColorStop(ratio, '#00d6a2');
+            g.addColorStop(1, '#00d6a2');
+            return g;
+          },
+          borderWidth: 2.5, pointRadius: 0, fill: false, tension: 0, order: 2,
+        },
+        {
+          label: 'Workloads',
+          data: workloads.map(w => ({ x: w.x, y: w.y })),
+          backgroundColor: workloads.map(w => w.color),
+          borderColor: workloads.map(w => w.color),
+          pointRadius: 7, pointHoverRadius: 9, showLine: false, order: 1,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label(ctx) {
+              if (ctx.datasetIndex === 1) {
+                const w = workloads[ctx.dataIndex];
+                return `${w.label}: ${w.x} FLOPs/byte → ${w.y} TFLOPS`;
+              }
+              return '';
+            }
+          },
+          filter(item) { return item.datasetIndex === 1; }
+        },
+        ridgeAnnotation: {
+          afterDraw(chart) {
+            const c2 = getColors();
+            const { ctx: c, chartArea, scales } = chart;
+            const xPx = scales.x.getPixelForValue(ridgeX);
+            const yTop = scales.y.getPixelForValue(COMPUTE_CEILING);
+            const yBot = chartArea.bottom;
+            c.save();
+            c.setLineDash([5, 4]);
+            c.strokeStyle = c2.annot; c.lineWidth = 1;
+            c.beginPath(); c.moveTo(xPx, yTop); c.lineTo(xPx, yBot); c.stroke();
+            c.setLineDash([]);
+            const boxW = 112, boxH = 34, boxX = xPx - boxW / 2, boxY = yTop - 52;
+            c.fillStyle = c2.boxFill; c.strokeStyle = c2.boxStroke; c.lineWidth = 0.5;
+            c.beginPath(); c.roundRect(boxX, boxY, boxW, boxH, 4); c.fill(); c.stroke();
+            c.fillStyle = c2.annotText; c.font = '500 11px sans-serif'; c.textAlign = 'center';
+            c.fillText('ridge point', xPx, boxY + 13);
+            c.font = '11px sans-serif'; c.fillStyle = c2.tick;
+            c.fillText('\u2248' + Math.round(ridgeX) + '\u2009FLOPs/byte', xPx, boxY + 28);
+            c.strokeStyle = c2.annot; c.lineWidth = 0.5;
+            c.beginPath(); c.moveTo(xPx, boxY + boxH); c.lineTo(xPx, yTop); c.stroke();
+            c.restore();
+          }
+        },
+        workloadLabels: {
+          afterDraw(chart) {
+            const c2 = getColors();
+            const { ctx: c, scales } = chart;
+            workloads.forEach(pt => {
+              const xPx = scales.x.getPixelForValue(pt.x);
+              const yPx = scales.y.getPixelForValue(pt.y);
+              c.save();
+              c.fillStyle = c2.annotText; c.font = '11px sans-serif'; c.textAlign = pt.anchor;
+              c.fillText(pt.label, xPx + pt.labelOffsetX, yPx + pt.labelOffsetY);
+              c.restore();
+            });
+          }
+        }
+      },
+      scales: {
+        x: {
+          type: 'linear', min: 0, max: 200,
+          title: { display: true, text: 'Arithmetic intensity (FLOPs per byte of DRAM traffic)', color: col.label, font: { size: 12 } },
+          ticks: { color: col.tick, stepSize: 20 }, grid: { color: col.grid }
+        },
+        y: {
+          type: 'linear', min: 0, max: 380,
+          title: { display: true, text: 'Attainable performance (TFLOPS)', color: col.label, font: { size: 12 } },
+          ticks: { color: col.tick, stepSize: 50, callback: v => v + ' T' }, grid: { color: col.grid }
+        }
+      },
+      layout: { padding: { top: 20, right: 10, bottom: 8 } }
+    }
+  });
+}
+
+// Defer so main.js has time to apply the theme class from localStorage
+setTimeout(buildChart, 0);
+
+// Re-build when the theme toggle is clicked
+var toggleBtn = document.getElementById('theme-toggle');
+if (toggleBtn) toggleBtn.addEventListener('click', function() { setTimeout(buildChart, 0); });
+})();
+</script>
+
+
 <hr>
 <h2 id="Why-the-Abstraction-Is-So-Good-and-When-It-Leaks"><a href="#Why-the-Abstraction-Is-So-Good-and-When-It-Leaks" class="headerlink" title="Why the Abstraction Is So Good (and When It Leaks)"></a>Why the Abstraction Is So Good (and When It Leaks)</h2><p>CUDA’s genius is a clean layered abstraction: you think about threads, blocks, and grids. You explicitly manage shared memory. You write the kernel once and the hardware runs it across thousands of execution units.</p>
 <p>Most of this abstraction holds up well. You don’t need to think about which SM your block runs on. You don’t need to think about warp scheduling cycles. The compiler handles register allocation. The hardware handles cache management for L1 and L2.</p>
@@ -425,11 +604,11 @@
     <div class="post-tags">
       <span class="tags-label">Tags:</span>
       
+      <a href="/tags/Hardware/" class="tag-pill">Hardware</a>
+      
       <a href="/tags/GPU/" class="tag-pill">GPU</a>
       
       <a href="/tags/CUDA/" class="tag-pill">CUDA</a>
-      
-      <a href="/tags/Hardware/" class="tag-pill">Hardware</a>
       
       <a href="/tags/Computer-Architecture/" class="tag-pill">Computer Architecture</a>
       
@@ -463,7 +642,7 @@
 
   <!-- Search index (embedded, no extra package needed) -->
   <script>
-  window.__searchIndex = [{"title":"Inside the GPU: CUDA, Threads, and the Architecture That Makes It All Work","path":"/2026/03/22/inside-the-gpu-cuda-memory-architecture-and-hierarchy/","date":"2026-03-22","tags":["GPU","CUDA","Hardware","Computer Architecture"],"excerpt":"Thousands of threads. One instruction. This is how GPUs think. If you’ve read my previous post on tradeoffs in hardware, you already know the core intuition: CPUs optimize for latency, GPUs optimize for throughput. One fat sports car vs hundreds of bicycles. That framing is clean, but it’s also a bit unsatisfying once you start asking how . How exactly does a GPU achieve that throughput? What’s actually happening when you launch a CUDA kernel? What does “thousands of threads” even mean at the ha"},{"title":"Quantization and Pruning: A Structured Survey of Model Compression","path":"/2026/03/04/quantization-pruning-structured-survey-model-compression/","date":"2026-03-04","tags":["Hardware","AI/ML","Quantization"],"excerpt":"The weights don’t lie — most of them are just dead weight. If there’s one thing that becomes obvious once you start thinking seriously about deploying neural networks, it’s that scale is a trap. The models that researchers celebrate for benchmark records are routinely too large to run usefully on anything that isn’t a server rack. Language models with hundreds of billions of parameters. Vision transformers that barely fit in GPU memory. And the gap between what research produces and what actual "},{"title":"Ahead of the Pipeline: A Deep Dive into Prefetching Techniques","path":"/2026/03/25/ahead-of-the-pipeline-a-deep-dive-into-prefetching/","date":"2026-03-25","tags":["Hardware","Computer Architecture"],"excerpt":"Coming up soon!"},{"title":"Tradeoffs: The Core Essence of Hardware Optimization","path":"/2026/02/28/tradeoffs-core-essence-hardware-optimization/","date":"2026-02-28","tags":["Hardware","Computer Architecture"],"excerpt":"Everything in hardware is a negotiation — and that’s exactly why it’s beautiful. If there’s one thing studying computer architecture has genuinely rewired in how I think, it’s this: there is no perfect design . Every single hardware decision you make is a negotiation. You want more performance? Great….pay with power. Want to save area? Sure… watch your latency climb. Want to go faster? Hope you’re not memory-bound, because the memory wall does not care about your ambitions. And this isn’t some p"}];
+  window.__searchIndex = [{"title":"Quantization and Pruning: A Structured Survey of Model Compression","path":"/2026/03/04/quantization-pruning-structured-survey-model-compression/","date":"2026-03-04","tags":["AI/ML","Quantization","Hardware"],"excerpt":"The weights don’t lie — most of them are just dead weight. If there’s one thing that becomes obvious once you start thinking seriously about deploying neural networks, it’s that scale is a trap. The models that researchers celebrate for benchmark records are routinely too large to run usefully on anything that isn’t a server rack. Language models with hundreds of billions of parameters. Vision transformers that barely fit in GPU memory. And the gap between what research produces and what actual "},{"title":"Inside the GPU: CUDA, Threads, and the Architecture That Makes It All Work","path":"/2026/03/22/inside-the-gpu-cuda-memory-architecture-and-hierarchy/","date":"2026-03-22","tags":["Hardware","GPU","CUDA","Computer Architecture"],"excerpt":"Thousands of threads. One instruction. This is how GPUs think. If you’ve read my previous post on tradeoffs in hardware, you already know the core intuition: CPUs optimize for latency, GPUs optimize for throughput. One fat sports car vs hundreds of bicycles. That framing is clean, but it’s also a bit unsatisfying once you start asking how . How exactly does a GPU achieve that throughput? What’s actually happening when you launch a CUDA kernel? What does “thousands of threads” even mean at the ha"},{"title":"Ahead of the Pipeline: A Deep Dive into Prefetching Techniques","path":"/2026/03/25/ahead-of-the-pipeline-a-deep-dive-into-prefetching/","date":"2026-03-25","tags":["Hardware","Computer Architecture"],"excerpt":"Coming up soon!"},{"title":"Tradeoffs: The Core Essence of Hardware Optimization","path":"/2026/02/28/tradeoffs-core-essence-hardware-optimization/","date":"2026-02-28","tags":["Hardware","Computer Architecture"],"excerpt":"Everything in hardware is a negotiation — and that’s exactly why it’s beautiful. If there’s one thing studying computer architecture has genuinely rewired in how I think, it’s this: there is no perfect design . Every single hardware decision you make is a negotiation. You want more performance? Great….pay with power. Want to save area? Sure… watch your latency climb. Want to go faster? Hope you’re not memory-bound, because the memory wall does not care about your ambitions. And this isn’t some p"}];
   </script>
 
   

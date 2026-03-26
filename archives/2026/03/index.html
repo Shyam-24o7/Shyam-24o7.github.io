@@ -16,6 +16,15 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
 
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-RR8ZR3TD8C"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-RR8ZR3TD8C');
+</script>
+
 <!-- Theme CSS -->
 
 <link rel="stylesheet" href="/css/style.css">
@@ -102,6 +111,18 @@
   <h3 class="sidebar-title">Tags</h3>
   <div class="tag-cloud">
     
+    <a href="/tags/AI-ML/" class="tag-pill">
+      AI/ML<span class="tag-count">1</span>
+    </a>
+    
+    <a href="/tags/Quantization/" class="tag-pill">
+      Quantization<span class="tag-count">1</span>
+    </a>
+    
+    <a href="/tags/Hardware/" class="tag-pill">
+      Hardware<span class="tag-count">4</span>
+    </a>
+    
     <a href="/tags/GPU/" class="tag-pill">
       GPU<span class="tag-count">1</span>
     </a>
@@ -110,20 +131,8 @@
       CUDA<span class="tag-count">1</span>
     </a>
     
-    <a href="/tags/Hardware/" class="tag-pill">
-      Hardware<span class="tag-count">4</span>
-    </a>
-    
     <a href="/tags/Computer-Architecture/" class="tag-pill">
       Computer Architecture<span class="tag-count">3</span>
-    </a>
-    
-    <a href="/tags/AI-ML/" class="tag-pill">
-      AI/ML<span class="tag-count">1</span>
-    </a>
-    
-    <a href="/tags/Quantization/" class="tag-pill">
-      Quantization<span class="tag-count">1</span>
     </a>
     
   </div>
@@ -166,11 +175,11 @@
         
         <div class="archive-post-tags">
           
+          <a href="/tags/Hardware/" class="tag-pill">Hardware</a>
+          
           <a href="/tags/GPU/" class="tag-pill">GPU</a>
           
           <a href="/tags/CUDA/" class="tag-pill">CUDA</a>
-          
-          <a href="/tags/Hardware/" class="tag-pill">Hardware</a>
           
           <a href="/tags/Computer-Architecture/" class="tag-pill">Computer Architecture</a>
           
@@ -186,11 +195,11 @@
         
         <div class="archive-post-tags">
           
-          <a href="/tags/Hardware/" class="tag-pill">Hardware</a>
-          
           <a href="/tags/AI-ML/" class="tag-pill">AI/ML</a>
           
           <a href="/tags/Quantization/" class="tag-pill">Quantization</a>
+          
+          <a href="/tags/Hardware/" class="tag-pill">Hardware</a>
           
         </div>
         
@@ -219,7 +228,7 @@
 
   <!-- Search index (embedded, no extra package needed) -->
   <script>
-  window.__searchIndex = [{"title":"Inside the GPU: CUDA, Threads, and the Architecture That Makes It All Work","path":"/2026/03/22/inside-the-gpu-cuda-memory-architecture-and-hierarchy/","date":"2026-03-22","tags":["GPU","CUDA","Hardware","Computer Architecture"],"excerpt":"Thousands of threads. One instruction. This is how GPUs think. If you’ve read my previous post on tradeoffs in hardware, you already know the core intuition: CPUs optimize for latency, GPUs optimize for throughput. One fat sports car vs hundreds of bicycles. That framing is clean, but it’s also a bit unsatisfying once you start asking how . How exactly does a GPU achieve that throughput? What’s actually happening when you launch a CUDA kernel? What does “thousands of threads” even mean at the ha"},{"title":"Quantization and Pruning: A Structured Survey of Model Compression","path":"/2026/03/04/quantization-pruning-structured-survey-model-compression/","date":"2026-03-04","tags":["Hardware","AI/ML","Quantization"],"excerpt":"The weights don’t lie — most of them are just dead weight. If there’s one thing that becomes obvious once you start thinking seriously about deploying neural networks, it’s that scale is a trap. The models that researchers celebrate for benchmark records are routinely too large to run usefully on anything that isn’t a server rack. Language models with hundreds of billions of parameters. Vision transformers that barely fit in GPU memory. And the gap between what research produces and what actual "},{"title":"Ahead of the Pipeline: A Deep Dive into Prefetching Techniques","path":"/2026/03/25/ahead-of-the-pipeline-a-deep-dive-into-prefetching/","date":"2026-03-25","tags":["Hardware","Computer Architecture"],"excerpt":"Coming up soon!"},{"title":"Tradeoffs: The Core Essence of Hardware Optimization","path":"/2026/02/28/tradeoffs-core-essence-hardware-optimization/","date":"2026-02-28","tags":["Hardware","Computer Architecture"],"excerpt":"Everything in hardware is a negotiation — and that’s exactly why it’s beautiful. If there’s one thing studying computer architecture has genuinely rewired in how I think, it’s this: there is no perfect design . Every single hardware decision you make is a negotiation. You want more performance? Great….pay with power. Want to save area? Sure… watch your latency climb. Want to go faster? Hope you’re not memory-bound, because the memory wall does not care about your ambitions. And this isn’t some p"}];
+  window.__searchIndex = [{"title":"Quantization and Pruning: A Structured Survey of Model Compression","path":"/2026/03/04/quantization-pruning-structured-survey-model-compression/","date":"2026-03-04","tags":["AI/ML","Quantization","Hardware"],"excerpt":"The weights don’t lie — most of them are just dead weight. If there’s one thing that becomes obvious once you start thinking seriously about deploying neural networks, it’s that scale is a trap. The models that researchers celebrate for benchmark records are routinely too large to run usefully on anything that isn’t a server rack. Language models with hundreds of billions of parameters. Vision transformers that barely fit in GPU memory. And the gap between what research produces and what actual "},{"title":"Inside the GPU: CUDA, Threads, and the Architecture That Makes It All Work","path":"/2026/03/22/inside-the-gpu-cuda-memory-architecture-and-hierarchy/","date":"2026-03-22","tags":["Hardware","GPU","CUDA","Computer Architecture"],"excerpt":"Thousands of threads. One instruction. This is how GPUs think. If you’ve read my previous post on tradeoffs in hardware, you already know the core intuition: CPUs optimize for latency, GPUs optimize for throughput. One fat sports car vs hundreds of bicycles. That framing is clean, but it’s also a bit unsatisfying once you start asking how . How exactly does a GPU achieve that throughput? What’s actually happening when you launch a CUDA kernel? What does “thousands of threads” even mean at the ha"},{"title":"Ahead of the Pipeline: A Deep Dive into Prefetching Techniques","path":"/2026/03/25/ahead-of-the-pipeline-a-deep-dive-into-prefetching/","date":"2026-03-25","tags":["Hardware","Computer Architecture"],"excerpt":"Coming up soon!"},{"title":"Tradeoffs: The Core Essence of Hardware Optimization","path":"/2026/02/28/tradeoffs-core-essence-hardware-optimization/","date":"2026-02-28","tags":["Hardware","Computer Architecture"],"excerpt":"Everything in hardware is a negotiation — and that’s exactly why it’s beautiful. If there’s one thing studying computer architecture has genuinely rewired in how I think, it’s this: there is no perfect design . Every single hardware decision you make is a negotiation. You want more performance? Great….pay with power. Want to save area? Sure… watch your latency climb. Want to go faster? Hope you’re not memory-bound, because the memory wall does not care about your ambitions. And this isn’t some p"}];
   </script>
 
   
