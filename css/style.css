@@ -1198,7 +1198,7 @@ html.light .contact-icon-github { --contact-color: var(--accent); }
   .nav-toggle { display: block; }
 
   /* Shrink icon buttons slightly so they fit mobile header */
-  .search-btn   { width: 30px; height: 28px; border-radius: 6px; }
+  .search-btn   { width: 30px; height: 28px; border-radius: 6px; margin-right: calc(1.25rem + 30px + 8px); }
   .theme-toggle { width: 30px; height: 28px; font-size: 0.85rem; border-radius: 6px; }
 
   /* Typography scale-down */
