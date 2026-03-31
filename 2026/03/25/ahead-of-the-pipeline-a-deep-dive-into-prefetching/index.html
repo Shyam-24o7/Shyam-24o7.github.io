@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ahead of the Pipeline: A Deep Dive into Prefetching Techniques | Shyam-24o7</title>
+<title>Ahead of the Pipeline-I : A Deep Dive into Prefetching Techniques for CPU | Shyam-24o7</title>
 <meta name="description" content="Writing about computer architecture, hardware acceleration and the mathematics of efficient computation">
 
 <!-- Google Fonts: JetBrains Mono + Inter -->
@@ -78,7 +78,7 @@
       <div class="main-content main-content--full">
         <article class="post-full">
   <header class="post-full-header">
-    <h1 class="post-full-title">Ahead of the Pipeline: A Deep Dive into Prefetching Techniques</h1>
+    <h1 class="post-full-title">Ahead of the Pipeline-I : A Deep Dive into Prefetching Techniques for CPU</h1>
     <div class="post-meta">
       <time datetime="2026-03-24T18:30:00.000Z">2026-03-25</time>
       
@@ -86,7 +86,329 @@
   </header>
 
   <div class="post-content">
-    <p>Coming up soon!</p>
+    <p><em>Your CPU can execute a billion instructions per second. Then it touches memory. And waits.</em></p>
+<hr>
+<p>Before anything else: this post covers <strong>CPU prefetching only</strong>. The GPU&#x2F;CUDA post briefly referenced memory prefetching and promised a deeper treatment and that part is coming in Part II. The GPU’s approach to the same latency problem is architecturally different enough that collapsing both into one post would do neither justice, and honestly the CPU side alone deserves a post entirely on its own. </p>
+<p>Part II will cover memory coalescing, shared memory as a programmer-managed cache, warp scheduling as the GPU’s mechanism for latency hiding, and how that whole system connects. This post is entirely about what happens on the CPU side.</p>
+<p>Now, to the topic on hand —–&gt;</p>
+<hr>
+
+<style>
+#mw-wrap { padding: 0; }
+#mw-header { padding: 0 0 20px 0; }
+#mw-title { font-size: 22px; font-weight: 500; color: var(--color-text-primary); margin: 0 0 4px 0; letter-spacing: -0.3px; }
+#mw-sub { font-size: 13px; color: var(--color-text-secondary); margin: 0; }
+#mw-legend { display: flex; gap: 24px; margin-bottom: 18px; flex-wrap: wrap; }
+.mw-leg { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--color-text-secondary); }
+.mw-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+#mw-callouts { display: flex; gap: 12px; margin-top: 20px; }
+.mw-pill { flex: 1; padding: 14px 16px; border-radius: 10px; }
+.mw-pill-label { font-size: 11px; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; margin: 0 0 4px 0; }
+.mw-pill-val { font-size: 28px; font-weight: 500; margin: 0; line-height: 1; }
+.mw-pill-desc { font-size: 12px; margin: 4px 0 0 0; opacity: 0.75; }
+#pill-cap { background: #2B3A2A; }
+#pill-cap .mw-pill-label { color: #8BC98A; }
+#pill-cap .mw-pill-val { color: #C5E8C4; }
+#pill-cap .mw-pill-desc { color: #8BC98A; }
+#pill-bw { background: #1E2E3A; }
+#pill-bw .mw-pill-label { color: #7ABDE0; }
+#pill-bw .mw-pill-val { color: #B8DFF4; }
+#pill-bw .mw-pill-desc { color: #7ABDE0; }
+#pill-lat { background: #3A1F1F; }
+#pill-lat .mw-pill-label { color: #E88080; }
+#pill-lat .mw-pill-val { color: #F5BABA; }
+#pill-lat .mw-pill-desc { color: #E88080; }
+#mw-footer { margin-top: 16px; padding-top: 14px; border-top: 0.5px solid var(--color-border-tertiary); font-size: 12px; color: var(--color-text-tertiary); }
+</style>
+
+<div id="mw-wrap">
+  <div id="mw-header">
+    <p id="mw-title">Memory latency lags behind</p>
+    <p id="mw-sub">DRAM improvement relative to 1999 baseline — logarithmic scale</p>
+  </div>
+
+  <div id="mw-legend">
+    <span class="mw-leg"><span class="mw-dot" style="background:#4CAF72;"></span>Capacity</span>
+    <span class="mw-leg"><span class="mw-dot" style="background:#4A9DD4;"></span>Bandwidth</span>
+    <span class="mw-leg"><span class="mw-dot" style="background:#E05C5C;"></span>Latency</span>
+  </div>
+
+  <div style="position:relative;width:100%;height:300px;">
+    <canvas id="mwChart"></canvas>
+  </div>
+
+  <div id="mw-callouts">
+    <div class="mw-pill" id="pill-cap">
+      <p class="mw-pill-label">Capacity</p>
+      <p class="mw-pill-val">128×</p>
+      <p class="mw-pill-desc">1999 → 2017</p>
+    </div>
+    <div class="mw-pill" id="pill-bw">
+      <p class="mw-pill-label">Bandwidth</p>
+      <p class="mw-pill-val">20×</p>
+      <p class="mw-pill-desc">1999 → 2017</p>
+    </div>
+    <div class="mw-pill" id="pill-lat">
+      <p class="mw-pill-label">Latency</p>
+      <p class="mw-pill-val">1.3×</p>
+      <p class="mw-pill-desc">barely moved</p>
+    </div>
+  </div>
+
+  <p id="mw-footer">Data from Onur Mutlu / SAFARI research group (CMU). Baseline = 1999 DRAM generation.</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
+const gridCol = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+const tickCol = isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.45)';
+const labels = ['1999','2003','2006','2008','2011','2013','2014','2015','2016','2017'];
+const capacity  = [1, 2, 4, 4, 16, 20, 50, 45, 128, 128];
+const bandwidth = [1, 3, 6, 8, 10, 12, 14, 16, 22, 20];
+const latency   = [1, 0.95, 0.95, 1, 1.1, 1.2, 1.2, 1.2, 1.25, 1.3];
+
+new Chart(document.getElementById('mwChart'), {
+  type: 'line',
+  data: {
+    labels,
+    datasets: [
+      {
+        label: 'Capacity',
+        data: capacity,
+        borderColor: '#4CAF72',
+        backgroundColor: 'transparent',
+        borderWidth: 2.5,
+        pointBackgroundColor: '#4CAF72',
+        pointBorderColor: isDark ? '#1a1a1a' : '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        tension: 0.3,
+      },
+      {
+        label: 'Bandwidth',
+        data: bandwidth,
+        borderColor: '#4A9DD4',
+        backgroundColor: 'transparent',
+        borderWidth: 2.5,
+        pointBackgroundColor: '#4A9DD4',
+        pointBorderColor: isDark ? '#1a1a1a' : '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        tension: 0.3,
+      },
+      {
+        label: 'Latency',
+        data: latency,
+        borderColor: '#E05C5C',
+        backgroundColor: 'transparent',
+        borderWidth: 2.5,
+        borderDash: [],
+        pointBackgroundColor: '#E05C5C',
+        pointBorderColor: isDark ? '#1a1a1a' : '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        tension: 0.3,
+      },
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: isDark ? '#2a2a2a' : '#fff',
+        borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)',
+        borderWidth: 1,
+        titleColor: isDark ? '#ddd' : '#333',
+        bodyColor: isDark ? '#aaa' : '#555',
+        padding: 12,
+        callbacks: {
+          label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y}×`
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: { color: gridCol, lineWidth: 0.5 },
+        ticks: { color: tickCol, font: { size: 12 }, maxRotation: 0, autoSkip: false },
+        border: { color: gridCol }
+      },
+      y: {
+        type: 'logarithmic',
+        min: 0.8,
+        max: 200,
+        grid: { color: gridCol, lineWidth: 0.5 },
+        border: { color: gridCol },
+        ticks: {
+          color: tickCol,
+          font: { size: 12 },
+          callback: v => {
+            const nice = [1, 2, 5, 10, 20, 50, 100, 200];
+            return nice.includes(v) ? v + '×' : '';
+          }
+        }
+      }
+    }
+  }
+});
+</script>
+
+
+<h2 id="The-Memory-Wall"><a href="#The-Memory-Wall" class="headerlink" title="The Memory Wall"></a>The Memory Wall</h2><p>Here’s a number worth sitting with: a modern CPU core can retire an instruction roughly every cycle. At 4 GHz, that’s one instruction every 250 picoseconds. A load that hits the L1 cache resolves in about 4 cycles which is fast enough to barely interrupt the flow. A load that misses all the way to DRAM takes roughly 300 cycles ….. that’s 75 nanoseconds of complete silence in a machine designed to do something useful every quarter-nanosecond.</p>
+<p>The gap between compute speed and memory speed has been widening for decades. Processor frequency and IPC climbed steadily through the 80s, 90s, and 2000s. DRAM latency improved too, but far more slowly. The result is the <strong>memory wall</strong>: a growing chasm where your processor sits idle waiting for data that could have been there already, if only someone had thought to ask for it sooner.</p>
+<p><img src="/images/prefetch/memory_latency_ladder.svg" alt="Memory latency ladder — L1 through DRAM with cycle counts"><br><em>The latency ladder. Each level down is a step change in wait time. The L3→DRAM gap is where performance goes to die.</em></p>
+<p>Caches exist to exploit locality —&gt; the observation that programs tend to reuse recently accessed data (temporal locality) and tend to access memory sequentially (spatial locality). They help enormously. But they’re reactive. They keep data that was already requested. Prefetching is the proactive half of the story: fetching data <em>before</em> the CPU asks for it, so that when the demand access arrives, the data is already there.</p>
+<hr>
+<h2 id="The-Cache-What-It-Is-Physically"><a href="#The-Cache-What-It-Is-Physically" class="headerlink" title="The Cache: What It Is Physically"></a>The Cache: What It Is Physically</h2><p>Before prefetching makes sense you need a clear picture of what it’s feeding into, because the physical structure of a cache shapes everything about how prefetchers work.</p>
+<p>A cache is built from <strong>SRAM</strong> — six-transistor cells that are fast, low-latency, and expensive per bit. They’re organised into <strong>cache lines</strong>, the atomic unit of transfer: 64 bytes on all modern x86 and ARM processors. You don’t fetch a single byte from memory. You fetch the 64-byte cache line that contains it.</p>
+<p>The cache is <strong>set-associative</strong>. The full address space is divided into sets, and each set holds a fixed number of <strong>ways</strong> (copies). An 8-way 32KB L1 cache has 64 sets, each holding 8 possible lines. When you look up an address, you compute which set it maps to, then check all 8 ways in parallel for a tag match. A hit is fast because it’s a parallel lookup, not a linear search. A miss means none of the ways matched and you have to go to the next level.</p>
+<p><img src="/images/prefetch/cache_set_associative.svg" alt="Set-associative cache structure — sets, ways, tag array, data array"><br><em>A 4-way set-associative cache. The address is split into offset (selects bytes within a line), index (selects the set), and tag (disambiguates which line within the set). A hit requires a tag match in any way.</em></p>
+<p>Replacement happens when all ways in a set are occupied and a new line needs to come in. The dominant policy is <strong>LRU (Least Recently Used)</strong>: evict the way that was accessed furthest in the past. In practice, large caches often use <strong>PLRU (Pseudo-LRU)</strong> — a tree of bits that approximates LRU at much lower hardware cost.</p>
+<p>The latency ladder in concrete terms: <strong>L1 hit ≈ 4 cycles. L2 hit ≈ 12 cycles. L3 hit ≈ 40 cycles. DRAM ≈ 200–300 cycles.</strong> Every level you fall through, the penalty roughly triples or quadruples. Miss all the way to DRAM and you’ve given up 75–100 nanoseconds that the CPU spent doing nothing.</p>
+<hr>
+<h2 id="The-Bubble-Problem"><a href="#The-Bubble-Problem" class="headerlink" title="The Bubble Problem"></a>The Bubble Problem</h2><p>When a load misses the L1 cache, the instruction sits in the <strong>Reorder Buffer (ROB)</strong> waiting for its data. The out-of-order engine looks for other independent instructions to issue in the meantime that’s the whole point of OoO execution. But the ROB is finite (typically 200–500 entries on modern cores). If the miss takes 300 cycles to resolve and the ROB only has room for 300 instructions, the processor has to keep issuing those independent instructions fast enough to fill the window, or it stalls.</p>
+<p>For irregular workloads — pointer-chasing, graph traversal, hash table lookups — the ROB runs dry. There aren’t enough independent instructions downstream of the stall to keep the execution units fed. The pipeline drains and the processor waits. This is the <strong>memory bubble</strong>: a hole in the instruction stream caused by a high-latency memory access that the OoO engine couldn’t hide.</p>
+<p><img src="/images/prefetch/pipeline_bubble.svg" alt="Memory bubble in the pipeline — ROB drains while waiting on a long-latency miss"><br><em>The bubble. Once the ROB runs out of independent instructions to issue, execution stalls. Prefetching’s job is to make this bubble not happen — by getting the data there before anyone asks for it.</em></p>
+<p>This is the fundamental motivation. Prefetching doesn’t make memory faster. It moves the latency to a time when nobody’s waiting on it.</p>
+<hr>
+<h2 id="What-a-Prefetcher-Is"><a href="#What-a-Prefetcher-Is" class="headerlink" title="What a Prefetcher Is"></a>What a Prefetcher Is</h2><p>A prefetcher is a hardware unit wired close to the cache controller — L1 or L2, depending on the design that observes the stream of cache accesses going by and tries to predict which addresses will be needed next. When it’s confident enough in a prediction, it issues a <strong>speculative prefetch request</strong>: a memory access that isn’t the CPU asking for data, but the prefetcher betting that the CPU is about to.</p>
+<p>The simplest way to think about it: the cache is reactive (it responds to demand), the prefetcher is proactive (it acts on prediction). Together they try to ensure that by the time a demand access arrives, the data has already been fetched and is sitting in the cache waiting.</p>
+<p>What makes this hard is that the prefetcher has no access to source code, no knowledge of future instructions beyond what it can observe in the address stream, and has to make decisions in real time with bounded hardware state. It’s a probabilistic machine built on top of deterministic silicon, making guesses about deterministic program behaviour.</p>
+<hr>
+<h2 id="How-Prefetchers-Detect-Patterns"><a href="#How-Prefetchers-Detect-Patterns" class="headerlink" title="How Prefetchers Detect Patterns"></a>How Prefetchers Detect Patterns</h2><p>The quality of a prefetcher comes down entirely to the quality of its pattern detection. Given the history of addresses accessed, what address comes next? Different prefetchers answer this differently — and the progression from simple to complex is worth tracing.</p>
+<h3 id="Next-Line-Prefetching"><a href="#Next-Line-Prefetching" class="headerlink" title="Next-Line Prefetching"></a>Next-Line Prefetching</h3><p>The simplest possible bet: whenever you access cache line N, immediately prefetch cache line N+1. No tables, no state, almost no hardware. It works well for sequential access patterns iterating over an array, executing a linear instruction stream which are actually quite common. It’s completely wrong for everything else. Most real prefetchers include next-line as one baseline component and layer considerably more sophistication on top.</p>
+<h3 id="Stream-Detection"><a href="#Stream-Detection" class="headerlink" title="Stream Detection"></a>Stream Detection</h3><p>A stream prefetcher watches for sequential runs of accesses — two or three consecutive cache lines accessed in order and declares a <strong>stream</strong>. Once a stream is active, it issues requests for the next N lines ahead (N is the <strong>prefetch degree</strong>) at a distance D lines ahead of the current demand access (D is the <strong>prefetch distance</strong>).</p>
+<p>The stream detector runs as a state machine:</p>
+<p><img src="/images/prefetch/stream_detector_state_machine.svg" alt="Stream detector state machine — No Stream → Candidate → Active → End"><br><em>Stream detector states. The Candidate state is deliberate — the detector has seen one sequential miss but waits for a second before committing to a stream. One coincidental sequential access isn’t enough to start firing prefetches.</em></p>
+<p>After one sequential miss, the detector moves to <strong>Stream Candidate</strong> — it saw something but isn’t ready to prefetch yet. After a second sequential miss confirming the pattern, it moves to <strong>Active Stream</strong> and starts issuing. When the access pattern breaks an out-of-order access, a different stride, a long gap it closes the stream. Most implementations run a pool of 4–8 stream detectors in parallel, each tracking a different active stream.</p>
+<h3 id="Stride-Detection-The-Reference-Prediction-Table"><a href="#Stride-Detection-The-Reference-Prediction-Table" class="headerlink" title="Stride Detection: The Reference Prediction Table"></a>Stride Detection: The Reference Prediction Table</h3><p>Stream detection only handles unit-stride sequential access. Many real programs step through memory with a regular but non-unit stride iterating over a struct-of-arrays with a stride of 32 bytes, stepping through a matrix column-by-column, or processing interleaved records. For these patterns, the workhorse is the <strong>stride prefetcher</strong>, built around a <strong>Reference Prediction Table (RPT)</strong>.</p>
+<p>The RPT is indexed by the <strong>program counter</strong> of the load instruction. Each entry stores: the PC tag, the previous address that instruction accessed, the observed stride (current address minus previous address), and a state field.</p>
+<p><img src="/images/prefetch/rpt_state_machine.svg" alt="RPT state machine — Initial → Transient → Steady → No-pred"><br><em>The RPT state machine per entry. Prefetches only fire in Steady state — after the same stride has been confirmed twice. This is the confidence gate.</em></p>
+<p><strong>Initial</strong>: just allocated, no stride observed yet. No prefetch.</p>
+<p><strong>Transient</strong>: one stride observed and recorded. Not trusted yet. No prefetch.</p>
+<p><strong>Steady</strong>: the same stride confirmed on the next access. The prefetcher fires — it issues a prefetch for <code>current_address + stride</code> and continues as long as the stride stays consistent.</p>
+<p><strong>No-pred</strong>: the stride changed from what was stored. The predictor backs off and waits to see a new stable pattern before firing again.</p>
+<p>The two-observation gate is deliberate — it prevents the prefetcher from thrashing on a single coincidental stride match.</p>
+<h3 id="Confidence-Counters"><a href="#Confidence-Counters" class="headerlink" title="Confidence Counters"></a>Confidence Counters</h3><p>Both stream and stride detectors gate their prefetch decisions through <strong>saturation counters</strong>, typically 2-bit. A correct prediction (the prefetched line was actually demanded) increments the counter. A wrong prediction decrements it. Prefetches only fire when the counter is above a threshold. This is what gives the prefetcher its self-throttling behaviour — when predictions stop working, the counter drains and the prefetcher goes quiet automatically.</p>
+<h3 id="GHB-Global-History-Buffer"><a href="#GHB-Global-History-Buffer" class="headerlink" title="GHB: Global History Buffer"></a>GHB: Global History Buffer</h3><p>Stride detection fails on irregular but correlated patterns — pointer chasing through a linked list, hash table lookups, graph traversal. The addresses don’t follow a regular stride, but they do have <em>structure</em>: access to address A tends to be followed by access to address B, and that relationship repeats across multiple traversals of the same data structure.</p>
+<p>The <strong>Global History Buffer</strong> handles this. It’s a circular buffer recording every cache miss address in order. A separate <strong>PC-indexed table</strong> points each load instruction to its most recent entry in the buffer. When that instruction generates another miss, the prefetcher chains through the historical entries for that PC, reconstructing the sequence of addresses the instruction has accessed before, and predicts the next one will follow the same sequence.</p>
+<p><img src="/images/prefetch/ghb_structure.svg" alt="GHB structure — circular buffer + PC index table + chain of entries"><br><em>The GHB. Each PC’s entry in the index table points to its most recent miss in the circular buffer. Older entries for the same PC are chained together, reconstructing the access history.</em></p>
+<p>GHB handles irregular correlated patterns that completely defeat stream and stride detectors. It costs more hardware state and more complex lookup logic, but it’s the right tool when access patterns are too irregular for stride detection but still have enough structure to be learnable.</p>
+<hr>
+<h2 id="The-Physical-Machinery"><a href="#The-Physical-Machinery" class="headerlink" title="The Physical Machinery"></a>The Physical Machinery</h2><p>Now that we understand how the prefetcher decides <em>what</em> to fetch, here’s the hardware that actually executes that decision — the path a prefetch request takes from the moment it’s generated to the moment the data lands somewhere the CPU can use it.</p>
+<h3 id="Detector-Tables"><a href="#Detector-Tables" class="headerlink" title="Detector Tables"></a>Detector Tables</h3><p>The pattern detection logic above lives as small, fast SRAM lookup tables wired to the cache controller. The RPT is one such table, indexed by PC. Stream detector state is another. These tables are read and updated on every cache access — hits and misses alike — to keep the pattern state current. A few hundred entries each is typical, sized to cover the active load instructions without growing too expensive.</p>
+<h3 id="Prefetch-Request-Queue-PRQ"><a href="#Prefetch-Request-Queue-PRQ" class="headerlink" title="Prefetch Request Queue (PRQ)"></a>Prefetch Request Queue (PRQ)</h3><p>When the detector logic fires a prefetch, the generated address goes into the <strong>Prefetch Request Queue</strong>. The PRQ buffers the rate mismatch between how fast the prefetcher generates requests and how fast the memory subsystem can service them. When the memory bus is busy with demand traffic, prefetch requests sit here and wait. They’re lower priority than demand accesses — a stalled load blocking a pipeline instruction goes to the front; speculative prefetches wait.</p>
+<h3 id="Miss-Status-Holding-Registers-MSHRs"><a href="#Miss-Status-Holding-Registers-MSHRs" class="headerlink" title="Miss Status Holding Registers (MSHRs)"></a>Miss Status Holding Registers (MSHRs)</h3><p>When a prefetch request leaves the PRQ and goes to lower memory, it needs to be tracked while in-flight. That tracking happens in the <strong>MSHRs</strong>.</p>
+<p>Each MSHR entry tracks one outstanding miss — demand or prefetch. It holds: the physical address of the cache line being fetched, a valid bit marking the entry active, a pointer to the fill buffer where data should land on return, a linked list of any instructions waiting on this data (for demand misses), and subword enables marking which bytes within the line are actually needed.</p>
+<p><img src="/images/prefetch/mshr_entry_structure.svg" alt="MSHR entry structure — fields in a single MSHR"><br><em>One MSHR entry. The dependent instruction list allows the OoO engine to wake up waiting instructions the moment data returns — without polling.</em></p>
+<p>The critical number: a typical L1 cache has <strong>8 to 20 MSHRs</strong>. When a new miss arrives and all entries are occupied, the processor cannot issue any more loads — it <strong>fully stalls</strong>. Not because memory is slow, but because the bookkeeping hardware ran out of tracking slots. This is <strong>MSHR exhaustion</strong>.</p>
+<p>The direct connection to prefetching: prefetch requests consume MSHRs too. An over-aggressive prefetcher fills the table with speculative entries, leaving no slots for demand loads. The prefetcher ends up stalling the very pipeline it was trying to help. This is one of the most concrete mechanisms by which too much prefetching actively hurts performance.</p>
+<h3 id="The-Prefetch-Buffer"><a href="#The-Prefetch-Buffer" class="headerlink" title="The Prefetch Buffer"></a>The Prefetch Buffer</h3><p>When data returns from lower memory in response to a prefetch, it doesn’t go directly into L1 in many designs. Instead it lands in a dedicated <strong>prefetch buffer</strong> — a small SRAM structure, typically 8–16 entries, sitting between L1 and L2.</p>
+<p><img src="/images/prefetch/prefetch_buffer_placement.svg" alt="Prefetch buffer placement between L1 and L2"><br><em>The prefetch buffer sits between L1 and L2. Speculative lines land here, not directly in L1. A demand hit promotes the line into L1. A line that’s never demanded is simply dropped.</em></p>
+<p>When a demand access arrives and its line is in the prefetch buffer, it gets promoted into L1. Lines that are never demanded get dropped when newer prefetches need the space. This design keeps speculative data out of L1 entirely until it’s confirmed useful … which is the primary architectural answer to cache pollution.</p>
+<p>So the full path is: <strong>detector fires → address enters PRQ → drains into MSHR → MSHR tracks the in-flight request → data returns from memory → lands in prefetch buffer → demand access promotes it into L1</strong>.</p>
+<hr>
+<h2 id="Prefetchers-at-Every-Level-of-the-Hierarchy"><a href="#Prefetchers-at-Every-Level-of-the-Hierarchy" class="headerlink" title="Prefetchers at Every Level of the Hierarchy"></a>Prefetchers at Every Level of the Hierarchy</h2><p>Prefetching doesn’t happen at just one level. There are distinct prefetchers at each level of the memory hierarchy, each under different constraints and with different degrees of sophistication.</p>
+<h3 id="L1-Prefetcher"><a href="#L1-Prefetcher" class="headerlink" title="L1 Prefetcher"></a>L1 Prefetcher</h3><p>The L1 prefetcher has the tightest timing requirement. If it issues a prefetch that takes 12 cycles to return from L2, it needs to have done so 12 cycles before the demand access. At 4 GHz executing one instruction per cycle, that’s 12 instructions of lookahead — a thin margin. As a result, L1 prefetchers are typically simple: next-line and a small stream detector with 2–4 active streams. Complex table lookups are too slow to be useful at this level. Accuracy matters most here because MSHR exhaustion from bad prefetches directly stalls the core.</p>
+<h3 id="L2-Prefetcher"><a href="#L2-Prefetcher" class="headerlink" title="L2 Prefetcher"></a>L2 Prefetcher</h3><p>The L2 prefetcher has more time — a miss to L3 takes ~40 cycles, to DRAM ~300. Both are long enough to afford more complex logic: larger RPT tables, more stream detectors, GHB-based prediction. L2 prefetchers are where most of the architectural sophistication in real chips lives. They also operate on physical addresses, which has implications discussed later.</p>
+<h3 id="L3-Prefetcher"><a href="#L3-Prefetcher" class="headerlink" title="L3 Prefetcher"></a>L3 Prefetcher</h3><p>The L3 is shared across all cores. A bad prefetch here can evict data another core was actively using — the blast radius is larger. L3 prefetchers are more conservative: lower aggression, stricter accuracy requirements. Their primary target is DRAM latency, which at 300 cycles gives enough lookahead time to be useful even with slower, more careful prediction.</p>
+<h3 id="DRAM-The-Row-Buffer"><a href="#DRAM-The-Row-Buffer" class="headerlink" title="DRAM: The Row Buffer"></a>DRAM: The Row Buffer</h3><p>This level is often overlooked but it’s the most fundamental. DRAM is organised into banks, each containing a <strong>row buffer</strong> — a sense amplifier array that holds one full row (typically 8KB) after it’s been opened. Reading from an open row (a <strong>row buffer hit</strong>) takes roughly 15 ns. Reading from a closed row (a <strong>row buffer miss</strong>, requiring the current row to close and a new one to activate) takes ~60 ns.</p>
+<p><img src="/images/prefetch/dram_row_buffer.svg" alt="DRAM row buffer — open row hit vs miss timing"><br><em>The row buffer is DRAM’s built-in implicit prefetch. Opening a row loads 8KB into the sense amplifiers. Sequential access stays in the open row; random access keeps forcing row close&#x2F;open cycles and pays 4× the penalty.</em></p>
+<p>The row buffer is DRAM’s implicit prefetcher. The act of opening a row speculatively loads 8KB into the sense amplifiers. Sequential patterns exploit this naturally; random patterns that scatter across rows pay the full row-open penalty on every access. This is the physical reason sequential memory access is dramatically faster than random access even past the caches — the phenomenon goes all the way down to the DRAM silicon, and it’s worth internalising.</p>
+<p>The <strong>memory controller</strong> also runs its own prefetch logic — reordering read requests to maximise row buffer hits and issuing read-ahead requests based on detected sequential streams.</p>
+<p><strong>Real chip numbers</strong>: Zen 4 runs 4 stream prefetchers at L1, 4 at L2, and a dedicated prefetcher in the memory controller. Intel’s Golden Cove (Alder Lake P-core) runs a next-line, stride, and stream prefetcher simultaneously at L2, all competing for MSHR slots, with hardware arbitrating between their outputs.</p>
+<hr>
+<h2 id="The-Timing-Problem"><a href="#The-Timing-Problem" class="headerlink" title="The Timing Problem"></a>The Timing Problem</h2><p>Everything so far describes what the prefetcher fetches. The harder question is <em>when</em>.</p>
+<p>A prefetch is only useful if it arrives before the CPU needs the data, but not so early that the data gets evicted before the demand access occurs. There is a narrow window of usefulness, and most prefetch designs miss it in one direction or the other.</p>
+<p><img src="/images/prefetch/prefetch_timing_cases.svg" alt="Three prefetch timing cases — too late, on time, too early"><br><em>Three outcomes. Too late: the demand miss still stalls the pipeline. On time: latency fully hidden. Too early: data evicted before demand arrives — you paid the bandwidth cost and still got a miss.</em></p>
+<p><strong>Too late</strong>: The prefetch was issued too close to the demand access. Data is still in transit when the CPU asks for it. Pipeline stalls exactly as it would without prefetching. Bandwidth wasted, latency not hidden.</p>
+<p><strong>On time</strong>: The prefetch was issued far enough ahead that data arrived and is sitting in the cache when demand comes. Latency fully hidden. This is the goal.</p>
+<p><strong>Too early</strong>: The prefetch was issued so far ahead that by the time demand arrives, other traffic has evicted the line. The demand misses and goes back to memory. You paid the bandwidth cost, wasted the cache slot, and still paid the full miss penalty. Worse than nothing.</p>
+<p><strong>Prefetch distance</strong> controls how far ahead the prefetcher looks. Too small → always late. Too large → data evicted before use. The right distance depends on memory latency, access rate, and cache pressure — all of which vary per workload and change across program phases. No static distance is universally right, which is why modern prefetchers tune distance dynamically.</p>
+<hr>
+<h2 id="Aggression-Accuracy-and-Coverage"><a href="#Aggression-Accuracy-and-Coverage" class="headerlink" title="Aggression, Accuracy, and Coverage"></a>Aggression, Accuracy, and Coverage</h2><p>Two metrics define prefetcher quality, and they pull in opposite directions.</p>
+<p><strong>Coverage</strong> is the fraction of demand cache misses that were converted into prefetch hits. High coverage means the prefetcher is catching most misses before they stall the pipeline. Coverage increases with aggression.</p>
+<p><strong>Accuracy</strong> is the fraction of issued prefetches that were actually demanded. Low accuracy means wasted bandwidth, evicted cache lines, occupied MSHRs — for nothing. Accuracy decreases with aggression.</p>
+<p><img src="/images/prefetch/accuracy_coverage_curve.svg" alt="Accuracy-coverage curve — the tradeoff as prefetch aggression increases"><br><em>The accuracy-coverage curve. Increasing aggression gains coverage but costs accuracy. The optimal point is the knee — maximum coverage before accuracy collapses. Modern prefetchers try to find and hold this point dynamically.</em></p>
+<p>A prefetcher that fires on every access gets near-100% coverage but near-0% accuracy. One that never fires has 100% accuracy and 0% coverage. The hardware has to find the knee and stay there dynamically across changing workload phases.</p>
+<p>Beyond accuracy and coverage there’s a third constraint that often becomes binding first: <strong>memory bandwidth</strong>. Every prefetch that misses the cache goes to DRAM and consumes bandwidth on a shared bus. An over-aggressive prefetcher congests the bus with speculative traffic, raising latency for demand misses even as the prefetch hit rate climbs. In bandwidth-sensitive workloads this is what you hit first.</p>
+<p><strong>Prefetch degree</strong> (how many lines per trigger) and <strong>prefetch distance</strong> (how far ahead) are the two main aggression knobs. Modern prefetchers tune both dynamically.</p>
+<hr>
+<h2 id="Cache-Pollution-and-How-Data-Exits"><a href="#Cache-Pollution-and-How-Data-Exits" class="headerlink" title="Cache Pollution and How Data Exits"></a>Cache Pollution and How Data Exits</h2><p>Cache pollution is what happens when the prefetcher gets the pattern wrong, or fires too early. Speculated lines fill cache ways, evicting hot data the CPU was actually using. Miss rate climbs, performance degrades, and the prefetcher has made things worse.</p>
+<p>The prefetch buffer is the first line of defence — by holding speculated data separately from L1, it prevents speculative eviction of hot L1 lines entirely. Only confirmed demand hits promote data into L1.</p>
+<p>For lines that do enter L1 via prefetch, the <strong>LRU insertion policy</strong> determines how quickly they can be evicted. By default, new lines enter at the MRU (most recently used) position and age slowly toward LRU — occupying a cache way for a long time. A prefetched line that’s never demanded will sit there blocking a way that could hold something useful.</p>
+<p>The fix: insert prefetched lines at the <strong>LRU position</strong> instead of MRU. They’re the first to be evicted when the set fills up. A demand hit on the line promotes it to MRU. A line that’s never demanded gets evicted quickly without displacing anything important.</p>
+<p><strong>BIP (Bimodal Insertion Policy)</strong> and <strong>SHIP (Signature-based Hit Prediction)</strong> go further — tracking historical reuse per line signature and adjusting insertion position accordingly. Lines that historically get reused are inserted high on the LRU stack; lines that historically get evicted unused are inserted at LRU from the start.</p>
+<p><strong>Feedback-driven throttling</strong> is the dynamic counterpart: the prefetcher monitors its own accuracy over a sliding window. If accuracy drops below a threshold — too many prefetched lines evicted unused — it automatically reduces prefetch degree. Intel’s prefetcher from Nehalem onward uses a variant of this. Accuracy recovers, pollution drops, and the prefetcher ramps back up when conditions improve.</p>
+<p>So the exit story for a prefetched line is one of three things: it gets demanded and promoted to MRU (success), it ages to LRU and gets evicted to make room for something else (quiet failure), or the prefetcher throttles before it even generates the request (self-correcting).</p>
+<hr>
+<h2 id="A-Taxonomy-of-Prefetchers"><a href="#A-Taxonomy-of-Prefetchers" class="headerlink" title="A Taxonomy of Prefetchers"></a>A Taxonomy of Prefetchers</h2><p>The prefetchers covered in depth above are the core mechanisms. The field is considerably wider — here’s the full landscape across hardware, software, and thread-level approaches, with links for wherever you want to go deeper.</p>
+<p><img src="/images/prefetch/prefetcher_taxonomy_overview.svg" alt="Prefetcher taxonomy overview — hardware, software, and thread-level categories"><br><em>The full prefetcher taxonomy. Each category lives at a different point on the programmer-involvement vs hardware-complexity spectrum.</em></p>
+<h3 id="Hardware-Prefetchers"><a href="#Hardware-Prefetchers" class="headerlink" title="Hardware Prefetchers"></a>Hardware Prefetchers</h3><p>These run transparently — no programmer involvement, no source code changes required.</p>
+<p><img src="/images/prefetch/hardware_prefetcher_pattern_coverage.svg" alt="Hardware prefetcher pattern coverage — which prefetcher handles which access pattern"><br><em>Coverage map. Sequential patterns → next-line and stream. Regular non-unit strides → RPT. Correlated irregular patterns → GHB and spatial prefetchers. The progression is increasing pattern complexity.</em></p>
+<p><strong>Next-line</strong>: Always fetch N+1 on access to N. Near-zero hardware, works for sequential access, useless otherwise. Present in almost every design as a baseline component.</p>
+<p><strong>Stream prefetcher</strong>: Detects sequential runs, opens a stream, issues prefetches D lines ahead at degree N. The workhorse of hardware prefetching — most CPUs run 4–8 simultaneous stream detectors.<br><em>Good starting point: <a target="_blank" rel="noopener" href="https://course.ece.cmu.edu/~ece740/f10/lib/exe/fetch.php?media=seth-740-fall10-module5.2-prefetching.pdf">Onur Mutlu’s CMU 18-740 prefetching lecture slides</a></em></p>
+<p><strong>Stride prefetcher (RPT)</strong>: PC-indexed table, four-state machine, fires on consistent stride confirmation. Handles non-unit strides that stream detectors miss.<br><em><a target="_blank" rel="noopener" href="https://dl.acm.org/doi/10.1145/115953.115979">Baer &amp; Chen (1991)</a></em></p>
+<p><strong>GHB (Global History Buffer)</strong>: Circular miss buffer with PC-indexed chaining. Handles irregular but correlated patterns — pointer chasing, graph traversal.<br><em><a target="_blank" rel="noopener" href="https://ieeexplore.ieee.org/document/381947">Chen &amp; Baer (1995)</a></em></p>
+<p><strong>Markov prefetcher</strong>: Builds a transition probability table from observed miss sequences. Given a miss at address A, looks up A’s most likely next address and prefetches it. Probabilistic lookahead for irregular patterns.<br><em><a target="_blank" rel="noopener" href="https://dl.acm.org/doi/10.1145/192724.192733">Palacharla &amp; Kessler (1994)</a></em></p>
+<p><strong>SMS (Spatial Memory Streaming)</strong>: Operates at 2KB spatial region granularity. Learns which cache line offsets within a region tend to be co-accessed. On first touch of a region, fires prefetches for the entire learned access pattern at once.<br><em><a target="_blank" rel="noopener" href="https://dl.acm.org/doi/10.1145/1555754.1555766">Wenisch et al. (2009), ISCA</a></em></p>
+<p><strong>AMPM (Access Map Pattern Matching)</strong>: Maintains per-region bitmaps of accessed and prefetched lines. Matches the current bitmap against learned patterns to predict which lines to fetch next.<br><em><a target="_blank" rel="noopener" href="https://dl.acm.org/doi/10.1145/1995896.1995911">Ishii et al. (2011), ICS</a></em></p>
+<p><strong>SPP (Signature Path Prefetcher)</strong>: Compresses recent access deltas into a hash signature via shift-and-XOR. Looks up the signature in a pattern table to predict future deltas. Handles variable-length delta sequences that fixed-stride RPT misses.<br><em><a target="_blank" rel="noopener" href="https://ieeexplore.ieee.org/document/7783763">Kim et al. (2016), MICRO</a></em></p>
+<p><strong>BOP (Bouquet of Instruction Pointers)</strong>: Maintains a scored set of candidate prefetch offsets. Issues prefetches at the highest-scoring offsets — effectively running many stride prefetchers in parallel and selecting the best ones dynamically.<br><em><a target="_blank" rel="noopener" href="https://dl.acm.org/doi/10.1145/2872887.2750592">Michaud (2016), ISCA</a></em></p>
+<p><strong>VLDP (Variable Length Delta Prefetcher)</strong>: Extends stride prefetching to variable-length delta sequences. Matches the longest suffix of recent deltas against a pattern table. More expressive than fixed-stride RPT.<br><em><a target="_blank" rel="noopener" href="https://dl.acm.org/doi/10.1145/3307650.3322238">Kondguli &amp; Huang (2018), ISCA</a></em></p>
+<p><strong>Bingo</strong>: Combines PC-localised and offset-based spatial prefetching using a joint PC + address offset key. Captures both instruction-specific and region-level spatial patterns simultaneously.<br><em><a target="_blank" rel="noopener" href="https://ieeexplore.ieee.org/document/8675188">Bakhshalipour et al. (2019), HPCA</a></em></p>
+<p><strong>DSPatch</strong>: Two-component design — one PC-based, one offset-based — combined via a meta-predictor that selects between them based on recent accuracy. Adapts to whichever component is more useful for the current workload phase.<br><em><a target="_blank" rel="noopener" href="https://dl.acm.org/doi/10.1145/3352460.3358294">Bakhshalipour et al. (2019), MICRO</a></em></p>
+<p><strong>Pythia</strong>: RL-based prefetcher. The prefetcher is an agent — its action is whether and where to prefetch, its reward signal comes from cache hit&#x2F;miss outcomes. First ML-based prefetcher to be competitive with hand-tuned heuristics on real workloads. The fact that it works demonstrates that memory access patterns have enough learnable structure for an RL agent to find without explicit pattern templates.<br><em><a target="_blank" rel="noopener" href="https://dl.acm.org/doi/10.1145/3466752.3480114">Bhatia et al. (2021), MICRO</a></em></p>
+<p><strong>Berti</strong>: Per-load stride table tracking actual byte offsets rather than cache-line-granularity deltas. More accurate on patterns with sub-cache-line structure.<br><em><a target="_blank" rel="noopener" href="https://dl.acm.org/doi/10.1145/3559009.3569668">2022, MICRO</a></em></p>
+<hr>
+<h3 id="Software-Prefetchers"><a href="#Software-Prefetchers" class="headerlink" title="Software Prefetchers"></a>Software Prefetchers</h3><p>These require programmer involvement but can exploit access patterns the hardware can never independently infer.</p>
+<p><strong>Explicit prefetch instructions</strong>: <code>PREFETCHT0</code> (into all cache levels), <code>PREFETCHT1</code> (L2 and above), <code>PREFETCHT2</code> (L3 only), <code>PREFETCHNTA</code> (non-temporal — bypasses cache entirely, useful for data read once and never reused). The programmer issues these at a distance ahead of the actual access. When software wins over hardware: when the access pattern is known statically but too irregular for hardware to detect — hash tables, tree traversals, graph algorithms. The programmer knows <code>node-&gt;next</code> is the next address to visit. The hardware has no idea.<br><em><a target="_blank" rel="noopener" href="https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html">Intel Optimization Manual, §7</a></em></p>
+<p><strong><code>__builtin_prefetch()</code></strong>: GCC&#x2F;Clang intrinsic compiling to the right ISA instruction. Takes a locality hint (0 &#x3D; no temporal locality, 3 &#x3D; high temporal locality) mapping to <code>PREFETCHNTA</code> through <code>PREFETCHT0</code>.</p>
+<p><strong>Compiler auto-prefetch</strong>: Loop analysis inserts prefetch instructions automatically for counted loops with regular strides. Works well for dense linear algebra. Often the right default — the compiler understands loop bounds and can compute the correct prefetch distance statically.</p>
+<p><strong>Data-triggered prefetching</strong>: In pointer-chasing workloads, the programmer inserts <code>prefetch(node-&gt;next)</code> before processing <code>node</code>. The pointer value is available as soon as <code>node</code> loads — the programmer issues the prefetch the moment the next address is known, well before the CPU needs to follow it. Hardware cannot derive <code>node-&gt;next</code> without first loading <code>node</code>; the programmer already has that value.<br><em><a target="_blank" rel="noopener" href="https://dl.acm.org/doi/10.1145/238914.238932">Luk &amp; Mowry (1996)</a></em></p>
+<p><strong>Non-temporal stores</strong> (<code>movnt</code> family): Write directly to memory bypassing the cache. For streaming writes — data produced once and never reread. Avoids write-allocate cache pollution from large output buffers.</p>
+<p><strong>JIT-inserted prefetches</strong>: Managed runtimes (JVM, .NET CLR) insert prefetch hints at JIT time based on runtime profiling. Adaptive and workload-specific without source changes.</p>
+<hr>
+<h3 id="Thread-Level-Prefetchers"><a href="#Thread-Level-Prefetchers" class="headerlink" title="Thread-Level Prefetchers"></a>Thread-Level Prefetchers</h3><p>These exploit hardware parallelism to run ahead of the main thread and warm the cache before it arrives.</p>
+<p><strong>Runahead execution</strong>: When the CPU stalls on an L3 miss, instead of freezing the pipeline it enters <strong>runahead mode</strong>. It keeps executing speculatively, marks all results derived from missing data as <strong>INV (invalid)</strong>, and lets load addresses flow into the memory system. Those loads generate new misses which get serviced in parallel. When the original stall resolves, the CPU rolls back, discards runahead results, and retires normally — but the cache is warm with the data those future loads will need. Prefetching by running ahead of yourself. One of the more elegant ideas in computer architecture.<br><em><a target="_blank" rel="noopener" href="https://dl.acm.org/doi/10.1145/859618.859628">Mutlu et al. (2003), ISCA</a></em></p>
+<p><strong>Dedicated helper threads</strong>: A spare hyperthread runs a stripped-down pre-computation ahead of the main thread — just enough to generate future load addresses. Its sole purpose is to touch memory early. Used in HPC and database workloads where the access pattern is complex enough that hardware can’t detect it but regular enough that a simplified pre-computation works.<br><em><a target="_blank" rel="noopener" href="https://dl.acm.org/doi/10.1145/379252.379261">Luk (2001)</a></em></p>
+<p><strong>Speculative precomputation (STP)</strong>: Compiler-inserted lightweight threads for irregular patterns — pointer chasing, indirection-heavy loops — where hardware fails and writing manual helper threads is too expensive. The compiler extracts the dependency chain leading to a hard-to-predict load and generates a thread that computes only that chain, ahead of the main thread.<br><em><a target="_blank" rel="noopener" href="https://dl.acm.org/doi/10.1145/379240.379248">Collins et al. (2001), ISCA</a></em></p>
+<p><strong>Slipstream</strong>: A reduced copy of the program runs ahead on a spare thread, skipping work unrelated to memory accesses. It feeds the main thread prefetch addresses for hard-to-predict accesses. The main thread runs behind but always has its data ready.<br><em><a target="_blank" rel="noopener" href="https://dl.acm.org/doi/10.1145/342001.339650">Sohi et al. (2000), ISCA</a></em></p>
+<hr>
+<h2 id="The-TLB-Problem"><a href="#The-TLB-Problem" class="headerlink" title="The TLB Problem"></a>The TLB Problem</h2><p>Hardware prefetchers that look ahead in the address space hit a hard architectural wall at <strong>page boundaries</strong>.</p>
+<p>A prefetcher operates on physical addresses — it needs them to issue requests to the memory hierarchy. But it observes load instructions working with virtual addresses. Translation goes through the <strong>TLB</strong>. For accesses within the current page, the TLB entry is loaded and translation is fast. But when a stream crosses into the next page, the prefetcher doesn’t know the physical address — the TLB might not have that entry, meaning a page table walk, which is itself a multi-level memory access.</p>
+<p>Most hardware prefetchers respond by <strong>stopping at page boundaries</strong>. Rather than trigger a TLB walk and disrupt the memory subsystem, they conservatively limit prefetching to within the current physical page. Stream prefetchers that work perfectly across 4KB of sequential data go conservative the moment a stream steps across a page boundary.</p>
+<p>Some newer designs run a concurrent TLB prefetcher to anticipate crossings, or operate in virtual address space with deferred translation. But most production prefetchers on shipping silicon throttle at page boundaries. If you’re profiling a workload and seeing unexpected stalls at exactly 64-cache-line intervals (4KB &#x2F; 64B &#x3D; 64 lines), this is why.</p>
+<hr>
+<h2 id="Measuring-Whether-It’s-Working"><a href="#Measuring-Whether-It’s-Working" class="headerlink" title="Measuring Whether It’s Working"></a>Measuring Whether It’s Working</h2><p>Knowing the theory is one thing. Knowing whether your prefetcher is actually helping <em>your specific workload</em> is a different skill, and it requires measuring rather than assuming.</p>
+<p>Modern CPUs expose hardware performance counters for this. On Intel: <code>L1D.PREFETCH_MISS</code> counts prefetch requests that missed L1 and went to L2. <code>MEM_LOAD_RETIRED.L1_MISS</code> counts demand loads that missed L1 — compare before and after enabling prefetching to get coverage. <code>OFFCORE_REQUESTS.DEMAND_DATA_RD</code> counts demand reads going off-core to L3 or DRAM. <code>L2_RQSTS.PF_HIT</code> and <code>L2_RQSTS.PF_MISS</code> give prefetch hit and miss rates at L2 — ratio gives accuracy. <strong>perf</strong> on Linux, <strong>VTune</strong> on Intel, and <strong>AMD uProf</strong> on Zen all expose these natively.</p>
+<p>A useful sanity check: disable the hardware prefetcher entirely — on x86, <code>IA32_MISC_ENABLE</code> has prefetcher disable bits accessible via MSR or BIOS — and measure your workload’s miss rate. Then re-enable and compare. For sequential workloads you’ll see a large drop in demand misses. For random-access workloads you might see almost no difference, or a slight degradation from pollution and MSHR pressure. That’s the prefetcher telling you your workload doesn’t have patterns it can detect.</p>
+<hr>
+<h2 id="Putting-It-Together"><a href="#Putting-It-Together" class="headerlink" title="Putting It Together"></a>Putting It Together</h2><p>The prefetcher isn’t one thing — it’s a stack of cooperating systems: detectors that find patterns in the access stream, a request queue that buffers predicted addresses, MSHRs that track in-flight requests, and a prefetch buffer that holds arriving data until it’s confirmed useful. At every step, confidence counters and throttling feedback keep the system from going too aggressive and becoming its own bottleneck.</p>
+<p>What I find interesting about all of this is how much of it happens invisibly. The programmer writes a loop. The hardware watches addresses flow by, infers the stride, issues speculative requests, and fills the cache with data before any stall occurs. When it works, the pipeline never sees the memory wall. When it doesn’t — wrong pattern, page boundary, MSHR exhaustion — you get the bubble.</p>
+<p>The fundamental difficulty is that the hardware operates under uncertainty. Probabilistic predictions about deterministic program behaviour, made in real time, with bounded state, no access to source code. Every design in the taxonomy above — SPP, Bingo, Pythia — is a different answer to the question of how much structure you can extract from the address stream within those constraints. The fact that an RL agent is now competitive with decades of hand-tuned heuristics says something interesting: the structure is there. Finding it is just a learning problem.</p>
+<hr>
+<p><strong>Part II</strong> will take this to the GPU. The latency problem is the same. The solution is architecturally completely different — no single instruction stream to follow, no PC-indexed stride tables, no runahead mode. Instead: thousands of warps, memory coalescing, shared memory as a programmer-controlled prefetch buffer, and warp scheduling as the GPU’s mechanism for hiding latency behind useful work. The concepts transfer. The hardware does not.</p>
+<hr>
+<p><strong>Further reading</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://course.ece.cmu.edu/~ece740/f10/lib/exe/fetch.php?media=seth-740-fall10-module5.2-prefetching.pdf">Onur Mutlu, CMU 18-740 Computer Architecture — prefetching lectures</a> — the cleanest progression from stride to GHB to SMS, freely available</li>
+<li>Baer &amp; Chen (1991), <em>An Effective On-Chip Preloading Scheme To Reduce Data Access Penalty</em> — original stride&#x2F;RPT paper</li>
+<li>Chen &amp; Baer (1995), <em>Effective Hardware-Based Data Prefetching for High-Performance Processors</em> — GHB foundation</li>
+<li>Mutlu, Stark, Wilkerson &amp; Patt (2003), <em>Runahead Execution</em> — ISCA</li>
+<li>Wenisch et al. (2009), <em>Temporal Streaming of Shared Memory</em> — SMS, ISCA</li>
+<li>Kim et al. (2016), <em>Path Confidence based Lookahead Prefetching</em> — SPP, MICRO</li>
+<li>Bhatia et al. (2021), <em>Pythia: A Customizable Hardware Prefetching Framework Using Online Reinforcement Learning</em> — MICRO</li>
+<li><a target="_blank" rel="noopener" href="https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html">Intel 64 and IA-32 Architectures Optimization Reference Manual, Chapter 7</a> — software prefetch instructions</li>
+</ul>
+<hr>
+<p><em>— Shyam-24o7</em></p>
 
   </div>
 
@@ -95,9 +417,9 @@
     <div class="post-tags">
       <span class="tags-label">Tags:</span>
       
-      <a href="/tags/Computer-Architecture/" class="tag-pill">Computer Architecture</a>
-      
       <a href="/tags/Hardware/" class="tag-pill">Hardware</a>
+      
+      <a href="/tags/Computer-Architecture/" class="tag-pill">Computer Architecture</a>
       
     </div>
     
@@ -127,7 +449,7 @@
 
   <!-- Search index (embedded, no extra package needed) -->
   <script>
-  window.__searchIndex = [{"title":"Ahead of the Pipeline: A Deep Dive into Prefetching Techniques","path":"/2026/03/25/ahead-of-the-pipeline-a-deep-dive-into-prefetching/","date":"2026-03-25","tags":["Computer Architecture","Hardware"],"excerpt":"Coming up soon!"},{"title":"Inside the GPU: CUDA, Threads, and the Architecture That Makes It All Work","path":"/2026/03/22/inside-the-gpu-cuda-memory-architecture-and-hierarchy/","date":"2026-03-22","tags":["Computer Architecture","Hardware","GPU","CUDA"],"excerpt":"Thousands of threads. One instruction. This is how GPUs think. If you’ve read my previous post on tradeoffs in hardware, you already know the core intuition: CPUs optimize for latency, GPUs optimize for throughput. One fat sports car vs hundreds of bicycles. That framing is clean, but it’s also a bit unsatisfying once you start asking how . How exactly does a GPU achieve that throughput? What’s actually happening when you launch a CUDA kernel? What does “thousands of threads” even mean at the ha"},{"title":"Tradeoffs: The Core Essence of Hardware Optimization","path":"/2026/02/28/tradeoffs-core-essence-hardware-optimization/","date":"2026-02-28","tags":["Computer Architecture","Hardware"],"excerpt":"Everything in hardware is a negotiation — and that’s exactly why it’s beautiful. If there’s one thing studying computer architecture has genuinely rewired in how I think, it’s this: there is no perfect design . Every single hardware decision you make is a negotiation. You want more performance? Great….pay with power. Want to save area? Sure… watch your latency climb. Want to go faster? Hope you’re not memory-bound, because the memory wall does not care about your ambitions. And this isn’t some p"},{"title":"Quantization and Pruning: A Structured Survey of Model Compression","path":"/2026/03/04/quantization-pruning-structured-survey-model-compression/","date":"2026-03-04","tags":["Hardware","AI/ML","Quantization"],"excerpt":"The weights don’t lie — most of them are just dead weight. If there’s one thing that becomes obvious once you start thinking seriously about deploying neural networks, it’s that scale is a trap. The models that researchers celebrate for benchmark records are routinely too large to run usefully on anything that isn’t a server rack. Language models with hundreds of billions of parameters. Vision transformers that barely fit in GPU memory. And the gap between what research produces and what actual "}];
+  window.__searchIndex = [{"title":"Quantization and Pruning: A Structured Survey of Model Compression","path":"/2026/03/04/quantization-pruning-structured-survey-model-compression/","date":"2026-03-04","tags":["AI/ML","Quantization","Hardware"],"excerpt":"The weights don’t lie — most of them are just dead weight. If there’s one thing that becomes obvious once you start thinking seriously about deploying neural networks, it’s that scale is a trap. The models that researchers celebrate for benchmark records are routinely too large to run usefully on anything that isn’t a server rack. Language models with hundreds of billions of parameters. Vision transformers that barely fit in GPU memory. And the gap between what research produces and what actual "},{"title":"Inside the GPU: CUDA, Threads, and the Architecture That Makes It All Work","path":"/2026/03/22/inside-the-gpu-cuda-memory-architecture-and-hierarchy/","date":"2026-03-22","tags":["Hardware","GPU","CUDA","Computer Architecture"],"excerpt":"Thousands of threads. One instruction. This is how GPUs think. If you’ve read my previous post on tradeoffs in hardware, you already know the core intuition: CPUs optimize for latency, GPUs optimize for throughput. One fat sports car vs hundreds of bicycles. That framing is clean, but it’s also a bit unsatisfying once you start asking how . How exactly does a GPU achieve that throughput? What’s actually happening when you launch a CUDA kernel? What does “thousands of threads” even mean at the ha"},{"title":"Ahead of the Pipeline-I : A Deep Dive into Prefetching Techniques for CPU","path":"/2026/03/25/ahead-of-the-pipeline-a-deep-dive-into-prefetching/","date":"2026-03-25","tags":["Hardware","Computer Architecture"],"excerpt":"Your CPU can execute a billion instructions per second. Then it touches memory. And waits. Before anything else: this post covers CPU prefetching only . The GPU&#x2F;CUDA post briefly referenced memory prefetching and promised a deeper treatment and that part is coming in Part II. The GPU’s approach to the same latency problem is architecturally different enough that collapsing both into one post would do neither justice, and honestly the CPU side alone deserves a post entirely on its own. Part "},{"title":"Tradeoffs: The Core Essence of Hardware Optimization","path":"/2026/02/28/tradeoffs-core-essence-hardware-optimization/","date":"2026-02-28","tags":["Hardware","Computer Architecture"],"excerpt":"Everything in hardware is a negotiation — and that’s exactly why it’s beautiful. If there’s one thing studying computer architecture has genuinely rewired in how I think, it’s this: there is no perfect design . Every single hardware decision you make is a negotiation. You want more performance? Great….pay with power. Want to save area? Sure… watch your latency climb. Want to go faster? Hope you’re not memory-bound, because the memory wall does not care about your ambitions. And this isn’t some p"}];
   </script>
 
   

@@ -142,45 +142,178 @@
 
         </aside>
         <div class="main-content">
-          <div class="tag-page">
-  <h1 class="page-title">
-    Tag: <span class="accent">#AI/ML</span>
-    <span class="tag-post-count">(1 post)</span>
-  </h1>
-
-  <div class="post-list">
-    
-      <article class="post-item">
-  <header class="post-item-header">
-    <h2 class="post-item-title">
-      <a href="/2026/03/04/quantization-pruning-structured-survey-model-compression/">Quantization and Pruning: A Structured Survey of Model Compression</a>
-    </h2>
-    <div class="post-meta">
-      <time datetime="2026-03-03T18:30:00.000Z">2026-03-04</time>
-      
-      <span class="post-tags-inline">
-        
-        <a href="/tags/AI-ML/" class="tag-pill">AI/ML</a>
-        
-        <a href="/tags/Quantization/" class="tag-pill">Quantization</a>
-        
-        <a href="/tags/Hardware/" class="tag-pill">Hardware</a>
-        
-      </span>
-      
-    </div>
+          <article class="page-full">
+  <header class="post-full-header">
+    <h1 class="post-full-title"></h1>
   </header>
-  <div class="post-excerpt">
-    
-      Models keep getting bigger. The hardware they run on doesn't. Quantization and pruning are the two main tools for closing that gap — but both are more hardware-dependent than people give them credit for.
-    
-  </div>
-  <a href="/2026/03/04/quantization-pruning-structured-survey-model-compression/" class="read-more">Read more &rarr;</a>
-</article>
+  <div class="post-content">
+    <style>
+#mw-wrap { padding: 0; }
+#mw-header { padding: 0 0 20px 0; }
+#mw-title { font-size: 22px; font-weight: 500; color: var(--color-text-primary); margin: 0 0 4px 0; letter-spacing: -0.3px; }
+#mw-sub { font-size: 13px; color: var(--color-text-secondary); margin: 0; }
+#mw-legend { display: flex; gap: 24px; margin-bottom: 18px; flex-wrap: wrap; }
+.mw-leg { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--color-text-secondary); }
+.mw-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+#mw-callouts { display: flex; gap: 12px; margin-top: 20px; }
+.mw-pill { flex: 1; padding: 14px 16px; border-radius: 10px; }
+.mw-pill-label { font-size: 11px; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; margin: 0 0 4px 0; }
+.mw-pill-val { font-size: 28px; font-weight: 500; margin: 0; line-height: 1; }
+.mw-pill-desc { font-size: 12px; margin: 4px 0 0 0; opacity: 0.75; }
+#pill-cap { background: #2B3A2A; }
+#pill-cap .mw-pill-label { color: #8BC98A; }
+#pill-cap .mw-pill-val { color: #C5E8C4; }
+#pill-cap .mw-pill-desc { color: #8BC98A; }
+#pill-bw { background: #1E2E3A; }
+#pill-bw .mw-pill-label { color: #7ABDE0; }
+#pill-bw .mw-pill-val { color: #B8DFF4; }
+#pill-bw .mw-pill-desc { color: #7ABDE0; }
+#pill-lat { background: #3A1F1F; }
+#pill-lat .mw-pill-label { color: #E88080; }
+#pill-lat .mw-pill-val { color: #F5BABA; }
+#pill-lat .mw-pill-desc { color: #E88080; }
+#mw-footer { margin-top: 16px; padding-top: 14px; border-top: 0.5px solid var(--color-border-tertiary); font-size: 12px; color: var(--color-text-tertiary); }
+</style>
 
-    
+<div id="mw-wrap">
+  <div id="mw-header">
+    <p id="mw-title">Memory latency lags behind</p>
+    <p id="mw-sub">DRAM improvement relative to 1999 baseline — logarithmic scale</p>
   </div>
+
+  <div id="mw-legend">
+    <span class="mw-leg"><span class="mw-dot" style="background:#4CAF72;"></span>Capacity</span>
+    <span class="mw-leg"><span class="mw-dot" style="background:#4A9DD4;"></span>Bandwidth</span>
+    <span class="mw-leg"><span class="mw-dot" style="background:#E05C5C;"></span>Latency</span>
+  </div>
+
+  <div style="position:relative;width:100%;height:300px;">
+    <canvas id="mwChart"></canvas>
+  </div>
+
+  <div id="mw-callouts">
+    <div class="mw-pill" id="pill-cap">
+      <p class="mw-pill-label">Capacity</p>
+      <p class="mw-pill-val">128×</p>
+      <p class="mw-pill-desc">1999 → 2017</p>
+    </div>
+    <div class="mw-pill" id="pill-bw">
+      <p class="mw-pill-label">Bandwidth</p>
+      <p class="mw-pill-val">20×</p>
+      <p class="mw-pill-desc">1999 → 2017</p>
+    </div>
+    <div class="mw-pill" id="pill-lat">
+      <p class="mw-pill-label">Latency</p>
+      <p class="mw-pill-val">1.3×</p>
+      <p class="mw-pill-desc">barely moved</p>
+    </div>
+  </div>
+
+  <p id="mw-footer">Data from Onur Mutlu / SAFARI research group (CMU). Baseline = 1999 DRAM generation.</p>
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
+const gridCol = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+const tickCol = isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.45)';
+const labels = ['1999','2003','2006','2008','2011','2013','2014','2015','2016','2017'];
+const capacity  = [1, 2, 4, 4, 16, 20, 50, 45, 128, 128];
+const bandwidth = [1, 3, 6, 8, 10, 12, 14, 16, 22, 20];
+const latency   = [1, 0.95, 0.95, 1, 1.1, 1.2, 1.2, 1.2, 1.25, 1.3];
+
+new Chart(document.getElementById('mwChart'), {
+  type: 'line',
+  data: {
+    labels,
+    datasets: [
+      {
+        label: 'Capacity',
+        data: capacity,
+        borderColor: '#4CAF72',
+        backgroundColor: 'transparent',
+        borderWidth: 2.5,
+        pointBackgroundColor: '#4CAF72',
+        pointBorderColor: isDark ? '#1a1a1a' : '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        tension: 0.3,
+      },
+      {
+        label: 'Bandwidth',
+        data: bandwidth,
+        borderColor: '#4A9DD4',
+        backgroundColor: 'transparent',
+        borderWidth: 2.5,
+        pointBackgroundColor: '#4A9DD4',
+        pointBorderColor: isDark ? '#1a1a1a' : '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        tension: 0.3,
+      },
+      {
+        label: 'Latency',
+        data: latency,
+        borderColor: '#E05C5C',
+        backgroundColor: 'transparent',
+        borderWidth: 2.5,
+        borderDash: [],
+        pointBackgroundColor: '#E05C5C',
+        pointBorderColor: isDark ? '#1a1a1a' : '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        tension: 0.3,
+      },
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: isDark ? '#2a2a2a' : '#fff',
+        borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)',
+        borderWidth: 1,
+        titleColor: isDark ? '#ddd' : '#333',
+        bodyColor: isDark ? '#aaa' : '#555',
+        padding: 12,
+        callbacks: {
+          label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y}×`
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: { color: gridCol, lineWidth: 0.5 },
+        ticks: { color: tickCol, font: { size: 12 }, maxRotation: 0, autoSkip: false },
+        border: { color: gridCol }
+      },
+      y: {
+        type: 'logarithmic',
+        min: 0.8,
+        max: 200,
+        grid: { color: gridCol, lineWidth: 0.5 },
+        border: { color: gridCol },
+        ticks: {
+          color: tickCol,
+          font: { size: 12 },
+          callback: v => {
+            const nice = [1, 2, 5, 10, 20, 50, 100, 200];
+            return nice.includes(v) ? v + '×' : '';
+          }
+        }
+      }
+    }
+  }
+});
+</script>
+  </div>
+</article>
 
         </div>
       </div>
