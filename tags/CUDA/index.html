@@ -91,15 +91,15 @@
   <ul class="sidebar-posts">
     
     <li>
+      <a href="/2026/04/23/ahead-of-the-pipeline-ii-prefetching-in-gpus/">Ahead of the Pipeline-II : Prefetching in GPUs — Coalescing, Shared Memory, and the Async Pipeline</a>
+    </li>
+    
+    <li>
       <a href="/2026/03/25/ahead-of-the-pipeline-a-deep-dive-into-prefetching/">Ahead of the Pipeline-I : A Deep Dive into Prefetching Techniques for CPU</a>
     </li>
     
     <li>
       <a href="/2026/03/22/inside-the-gpu-cuda-memory-architecture-and-hierarchy/">Inside the GPU: CUDA, Threads, and the Architecture That Makes It All Work</a>
-    </li>
-    
-    <li>
-      <a href="/2026/03/04/quantization-pruning-structured-survey-model-compression/">Quantization and Pruning: A Structured Survey of Model Compression</a>
     </li>
     
   </ul>
@@ -111,20 +111,20 @@
   <h3 class="sidebar-title">Tags</h3>
   <div class="tag-cloud">
     
-    <a href="/tags/GPU/" class="tag-pill">
-      GPU<span class="tag-count">1</span>
-    </a>
-    
-    <a href="/tags/CUDA/" class="tag-pill">
-      CUDA<span class="tag-count">1</span>
-    </a>
-    
     <a href="/tags/Hardware/" class="tag-pill">
-      Hardware<span class="tag-count">4</span>
+      Hardware<span class="tag-count">5</span>
     </a>
     
     <a href="/tags/Computer-Architecture/" class="tag-pill">
-      Computer Architecture<span class="tag-count">3</span>
+      Computer Architecture<span class="tag-count">4</span>
+    </a>
+    
+    <a href="/tags/GPU/" class="tag-pill">
+      GPU<span class="tag-count">2</span>
+    </a>
+    
+    <a href="/tags/CUDA/" class="tag-pill">
+      CUDA<span class="tag-count">2</span>
     </a>
     
     <a href="/tags/AI-ML/" class="tag-pill">
@@ -145,10 +145,41 @@
           <div class="tag-page">
   <h1 class="page-title">
     Tag: <span class="accent">#CUDA</span>
-    <span class="tag-post-count">(1 post)</span>
+    <span class="tag-post-count">(2 posts)</span>
   </h1>
 
   <div class="post-list">
+    
+      <article class="post-item">
+  <header class="post-item-header">
+    <h2 class="post-item-title">
+      <a href="/2026/04/23/ahead-of-the-pipeline-ii-prefetching-in-gpus/">Ahead of the Pipeline-II : Prefetching in GPUs — Coalescing, Shared Memory, and the Async Pipeline</a>
+    </h2>
+    <div class="post-meta">
+      <time datetime="2026-04-22T18:30:00.000Z">2026-04-23</time>
+      
+      <span class="post-tags-inline">
+        
+        <a href="/tags/Hardware/" class="tag-pill">Hardware</a>
+        
+        <a href="/tags/Computer-Architecture/" class="tag-pill">Computer Architecture</a>
+        
+        <a href="/tags/GPU/" class="tag-pill">GPU</a>
+        
+        <a href="/tags/CUDA/" class="tag-pill">CUDA</a>
+        
+      </span>
+      
+    </div>
+  </header>
+  <div class="post-excerpt">
+    
+      GPUs don't prefetch the way CPUs do. They use a layered system — warp scheduling, coalescing, shared memory tiling, async pipelines, and on Hopper, a dedicated hardware DMA engine — to hide the same latency problem entirely differently. This post goes through each layer.
+    
+  </div>
+  <a href="/2026/04/23/ahead-of-the-pipeline-ii-prefetching-in-gpus/" class="read-more">Read more &rarr;</a>
+</article>
+
     
       <article class="post-item">
   <header class="post-item-header">
@@ -160,13 +191,13 @@
       
       <span class="post-tags-inline">
         
-        <a href="/tags/GPU/" class="tag-pill">GPU</a>
-        
-        <a href="/tags/CUDA/" class="tag-pill">CUDA</a>
-        
         <a href="/tags/Hardware/" class="tag-pill">Hardware</a>
         
         <a href="/tags/Computer-Architecture/" class="tag-pill">Computer Architecture</a>
+        
+        <a href="/tags/GPU/" class="tag-pill">GPU</a>
+        
+        <a href="/tags/CUDA/" class="tag-pill">CUDA</a>
         
       </span>
       
@@ -202,7 +233,7 @@
 
   <!-- Search index (embedded, no extra package needed) -->
   <script>
-  window.__searchIndex = [{"title":"Inside the GPU: CUDA, Threads, and the Architecture That Makes It All Work","path":"/2026/03/22/inside-the-gpu-cuda-memory-architecture-and-hierarchy/","date":"2026-03-22","tags":["GPU","CUDA","Hardware","Computer Architecture"],"excerpt":"Thousands of threads. One instruction. This is how GPUs think. If you’ve read my previous post on tradeoffs in hardware, you already know the core intuition: CPUs optimize for latency, GPUs optimize for throughput. One fat sports car vs hundreds of bicycles. That framing is clean, but it’s also a bit unsatisfying once you start asking how . How exactly does a GPU achieve that throughput? What’s actually happening when you launch a CUDA kernel? What does “thousands of threads” even mean at the ha"},{"title":"Ahead of the Pipeline-I : A Deep Dive into Prefetching Techniques for CPU","path":"/2026/03/25/ahead-of-the-pipeline-a-deep-dive-into-prefetching/","date":"2026-03-25","tags":["Hardware","Computer Architecture"],"excerpt":"Your CPU can execute a billion instructions per second. Then it touches memory. And waits. Before anything else: this post covers CPU prefetching only . The GPU&#x2F;CUDA post briefly referenced memory prefetching and promised a deeper treatment and that part is coming in Part II. The GPU’s approach to the same latency problem is architecturally different enough that collapsing both into one post would do neither justice, and honestly the CPU side alone deserves a post entirely on its own. Part "},{"title":"Quantization and Pruning: A Structured Survey of Model Compression","path":"/2026/03/04/quantization-pruning-structured-survey-model-compression/","date":"2026-03-04","tags":["Hardware","AI/ML","Quantization"],"excerpt":"The weights don’t lie — most of them are just dead weight. If there’s one thing that becomes obvious once you start thinking seriously about deploying neural networks, it’s that scale is a trap. The models that researchers celebrate for benchmark records are routinely too large to run usefully on anything that isn’t a server rack. Language models with hundreds of billions of parameters. Vision transformers that barely fit in GPU memory. And the gap between what research produces and what actual "},{"title":"Tradeoffs: The Core Essence of Hardware Optimization","path":"/2026/02/28/tradeoffs-core-essence-hardware-optimization/","date":"2026-02-28","tags":["Hardware","Computer Architecture"],"excerpt":"Everything in hardware is a negotiation — and that’s exactly why it’s beautiful. If there’s one thing studying computer architecture has genuinely rewired in how I think, it’s this: there is no perfect design . Every single hardware decision you make is a negotiation. You want more performance? Great….pay with power. Want to save area? Sure… watch your latency climb. Want to go faster? Hope you’re not memory-bound, because the memory wall does not care about your ambitions. And this isn’t some p"}];
+  window.__searchIndex = [{"title":"Tradeoffs: The Core Essence of Hardware Optimization","path":"/2026/02/28/tradeoffs-core-essence-hardware-optimization/","date":"2026-02-28","tags":["Hardware","Computer Architecture"],"excerpt":"Everything in hardware is a negotiation — and that’s exactly why it’s beautiful. If there’s one thing studying computer architecture has genuinely rewired in how I think, it’s this: there is no perfect design . Every single hardware decision you make is a negotiation. You want more performance? Great….pay with power. Want to save area? Sure… watch your latency climb. Want to go faster? Hope you’re not memory-bound, because the memory wall does not care about your ambitions. And this isn’t some p"},{"title":"Ahead of the Pipeline-II : Prefetching in GPUs — Coalescing, Shared Memory, and the Async Pipeline","path":"/2026/04/23/ahead-of-the-pipeline-ii-prefetching-in-gpus/","date":"2026-04-23","tags":["Hardware","Computer Architecture","GPU","CUDA"],"excerpt":"The CPU bets on prediction. The GPU bets on parallelism. Same problem, completely different answer. Part I of this series covered CPU prefetching — the hardware units, the pattern detection algorithms, the timing problem, and the full taxonomy from next-line detectors up to reinforcement-learning-based prefetchers. If you haven’t read it, the short version is: a CPU prefetcher watches the stream of memory accesses coming from a single thread, detects patterns, and issues speculative requests ahe"},{"title":"Quantization and Pruning: A Structured Survey of Model Compression","path":"/2026/03/04/quantization-pruning-structured-survey-model-compression/","date":"2026-03-04","tags":["Hardware","AI/ML","Quantization"],"excerpt":"The weights don’t lie — most of them are just dead weight. If there’s one thing that becomes obvious once you start thinking seriously about deploying neural networks, it’s that scale is a trap. The models that researchers celebrate for benchmark records are routinely too large to run usefully on anything that isn’t a server rack. Language models with hundreds of billions of parameters. Vision transformers that barely fit in GPU memory. And the gap between what research produces and what actual "},{"title":"Inside the GPU: CUDA, Threads, and the Architecture That Makes It All Work","path":"/2026/03/22/inside-the-gpu-cuda-memory-architecture-and-hierarchy/","date":"2026-03-22","tags":["Hardware","Computer Architecture","GPU","CUDA"],"excerpt":"Thousands of threads. One instruction. This is how GPUs think. If you’ve read my previous post on tradeoffs in hardware, you already know the core intuition: CPUs optimize for latency, GPUs optimize for throughput. One fat sports car vs hundreds of bicycles. That framing is clean, but it’s also a bit unsatisfying once you start asking how . How exactly does a GPU achieve that throughput? What’s actually happening when you launch a CUDA kernel? What does “thousands of threads” even mean at the ha"},{"title":"Ahead of the Pipeline-I : A Deep Dive into Prefetching Techniques for CPU","path":"/2026/03/25/ahead-of-the-pipeline-a-deep-dive-into-prefetching/","date":"2026-03-25","tags":["Hardware","Computer Architecture"],"excerpt":"Your CPU can execute a billion instructions per second. Then it touches memory. And waits. Before anything else: this post covers CPU prefetching only . The GPU&#x2F;CUDA post briefly referenced memory prefetching and promised a deeper treatment and that part is coming in Part II. The GPU’s approach to the same latency problem is architecturally different enough that collapsing both into one post would do neither justice, and honestly the CPU side alone deserves a post entirely on its own. Part "}];
   </script>
 
   

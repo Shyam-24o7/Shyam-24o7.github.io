@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ahead of the Pipeline-II : Prefetching in GPUs — Coalescing, Shared Memory, and the Async Pipeline | Shyam-24o7</title>
+<meta name="description" content="Writing about computer architecture, hardware acceleration and the mathematics of efficient computation">
+
+<!-- Google Fonts: JetBrains Mono + Inter -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<!-- KaTeX -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
+
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-RR8ZR3TD8C"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-RR8ZR3TD8C');
+</script>
+
+<!-- Theme CSS -->
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+<meta name="generator" content="Hexo 8.1.1"></head>
+<body>
+  <!-- Scroll progress bar -->
+  <div id="scroll-progress"></div>
+
+  <header class="site-header">
+  <div class="container header-inner">
+    <a class="site-title" href="/">Shyam-24o7</a>
+    <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">&#9776;</button>
+    <nav class="site-nav" id="site-nav">
+      <a href="/">Home</a>
+      <a href="/archives">Archives</a>
+      <a href="/about">About</a>
+      <a href="/contact">Contact</a>
+    </nav>
+    <button class="search-btn" id="search-btn" aria-label="Search posts" title="Search (Ctrl+K)">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    </button>
+  </div>
+</header>
+
+
+  <!-- Fixed dark mode toggle — outside header so position:fixed works correctly -->
+  <button class="theme-toggle" id="theme-toggle" aria-label="Toggle light/dark mode" title="Toggle light mode">
+    <span class="theme-icon">🌙</span>
+  </button>
+
+  <!-- Search overlay -->
+  <div class="search-overlay" id="search-overlay" aria-hidden="true">
+    <div class="search-modal" role="dialog" aria-label="Search posts">
+      <div class="search-input-row">
+        <svg class="search-icon-inline" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="search-input" class="search-input" placeholder="Search posts, tags, content..." autocomplete="off" spellcheck="false">
+        <button class="search-close-btn" id="search-close" aria-label="Close">&#x2715;</button>
+      </div>
+      <div class="search-results" id="search-results">
+        <p class="search-hint">Start typing to search &nbsp;·&nbsp; <kbd>Esc</kbd> to close</p>
+      </div>
+    </div>
+  </div>
+
+  <main class="site-main">
+    <div class="container">
+      
+      <nav id="post-toc" class="post-toc" aria-label="Table of contents"></nav>
+      <div class="main-content main-content--full">
+        <article class="post-full">
+  <header class="post-full-header">
+    <h1 class="post-full-title">Ahead of the Pipeline-II : Prefetching in GPUs — Coalescing, Shared Memory, and the Async Pipeline</h1>
+    <div class="post-meta">
+      <time datetime="2026-04-22T18:30:00.000Z">2026-04-23</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <p><em>The CPU bets on prediction. The GPU bets on parallelism. Same problem, completely different answer.</em></p>
+<hr>
+<p>Part I of this series covered CPU prefetching — the hardware units, the pattern detection algorithms, the timing problem, and the full taxonomy from next-line detectors up to reinforcement-learning-based prefetchers. If you haven’t read it, the short version is: a CPU prefetcher watches the stream of memory accesses coming from a single thread, detects patterns, and issues speculative requests ahead of demand. It works because a single thread tends to have detectable, regular access patterns.</p>
+<p>GPUs don’t do this. Not in the same way. And understanding <em>why</em> is what this post is actually about.</p>
+<hr>
+<h2 id="The-Same-Problem-A-Different-Bet"><a href="#The-Same-Problem-A-Different-Bet" class="headerlink" title="The Same Problem, A Different Bet"></a>The Same Problem, A Different Bet</h2><p>The memory wall doesn’t care what kind of processor you are. DRAM latency on a GPU is roughly the same as on a CPU — 400 to 800 cycles, depending on the architecture and access pattern. That’s a long time to wait.</p>
+<p>But GPUs made a different architectural bet from the start. CPUs threw silicon at prediction — big out-of-order windows, aggressive hardware prefetchers, deep branch predictors — to keep a <em>single thread</em> running fast. GPUs threw that silicon at parallelism instead. The reasoning: if you have thousands of threads in flight simultaneously, some of them are always ready to compute. When one thread stalls on memory, you switch to another. The stall still happens. You just don’t notice it.</p>
+<p>This is <strong>latency hiding through parallelism</strong>, and it’s the foundational idea behind everything in this post. The GPU’s answer to the memory wall isn’t to predict and prefetch aggressively at the hardware level — it’s to keep so many threads in flight that memory latency is overlapped with useful compute by default.</p>
+<p>That said, “just run more threads” only gets you so far. The rest of this post is about the layered system GPUs use on top of that — starting from hardware and going all the way to what you write in your kernel.</p>
+<hr>
+<h2 id="Why-Hardware-Prefetchers-Don’t-Scale-to-GPUs"><a href="#Why-Hardware-Prefetchers-Don’t-Scale-to-GPUs" class="headerlink" title="Why Hardware Prefetchers Don’t Scale to GPUs"></a>Why Hardware Prefetchers Don’t Scale to GPUs</h2><p>On a CPU, a hardware prefetcher works because it’s watching one thread. That thread accesses addresses in some pattern — sequential, strided, or something more complex — and the prefetcher can detect it. The signal-to-noise ratio is high because there’s only one source of addresses.</p>
+<p>Now put 2048 threads on one SM, all accessing memory simultaneously. The address stream the memory controller sees is an interleaved mix of accesses from all those threads. Any pattern one thread has is completely buried under the noise from the others. A hardware prefetcher trying to detect strides in that stream would be operating on chaos.</p>
+<p>This is the core reason GPU hardware prefetchers are minimal. They exist — recent Ampere and Hopper GPUs have limited stream detection in the L2 — but they’re nowhere near as sophisticated as what you’d find in a modern CPU core, and they’re not expected to be. The architecture assumes the programmer and compiler are doing the heavy lifting.</p>
+<p>Which means the layers that <em>do</em> work — the ones that make GPU memory access fast — are almost entirely programmer-visible.</p>
+<hr>
+<h2 id="Warp-Scheduling-Latency-Hiding-as-the-First-Layer"><a href="#Warp-Scheduling-Latency-Hiding-as-the-First-Layer" class="headerlink" title="Warp Scheduling: Latency Hiding as the First Layer"></a>Warp Scheduling: Latency Hiding as the First Layer</h2><p>Before getting into anything the programmer explicitly controls, there’s one thing the hardware does automatically that deserves a careful look: <strong>warp scheduling</strong>.</p>
+<p>A warp is 32 threads that execute in lockstep — one instruction, 32 data elements, every cycle. When a warp issues a memory instruction, it stalls. The warp scheduler doesn’t wait. It immediately switches to another warp that’s ready to execute. When the memory comes back — 400 cycles later — the original warp becomes eligible again and the scheduler picks it up.</p>
+<p><img src="/images/gpu/warp_latency_hiding_timeline.svg" alt="Warp latency hiding timeline — multiple warps interleaved while one waits on memory"><br><em>Warp switching in action. While warp 0 waits on a memory access, warps 1 and 2 are executing. By the time the data returns, warp 0 slots back in without the SM ever going idle.</em></p>
+<p>The arithmetic is worth making explicit. An A100 SM can have up to <strong>64 warps resident simultaneously</strong>. A global memory access takes roughly 400–600 cycles. To fully hide that latency, you need enough independent warps to keep the execution units busy for those 400–600 cycles. With 4 warp schedulers per SM each issuing one instruction per cycle, you need roughly 100–150 in-flight instructions to cover a 400-cycle latency — which means around 4–5 warps worth of independent work.</p>
+<p>In practice the target is <strong>occupancy</strong> — the ratio of active warps to the maximum the hardware supports. High occupancy gives the scheduler more choices and better latency hiding. But occupancy isn’t free. Every thread that’s resident uses registers. Every block that’s resident uses shared memory. If your kernel uses 128 registers per thread at 2048 threads per SM, you’ve consumed the entire register file and nothing else can run. This is the <strong>occupancy-resources tradeoff</strong>: you want more warps in flight, but each warp costs registers and shared memory, which limits how many can fit.</p>
+<p>The practical implication: keeping register usage low and block sizes reasonable isn’t micro-optimisation. It’s the difference between the warp scheduler having four warps to work with or forty.</p>
+<hr>
+<h2 id="Memory-Coalescing-Spatial-Locality-at-Warp-Scale"><a href="#Memory-Coalescing-Spatial-Locality-at-Warp-Scale" class="headerlink" title="Memory Coalescing: Spatial Locality at Warp Scale"></a>Memory Coalescing: Spatial Locality at Warp Scale</h2><p>Warp scheduling hides latency when you have enough independent warps. But it doesn’t change how much bandwidth you consume. That’s where <strong>memory coalescing</strong> comes in, and it’s arguably the single most important access pattern property on a GPU.</p>
+<p>When a warp executes a load instruction, all 32 threads issue their memory requests simultaneously. The memory controller looks at those 32 addresses and tries to serve them in as few transactions as possible. If the addresses are <strong>contiguous</strong> — thread 0 accesses byte 0, thread 1 accesses byte 4, thread 2 accesses byte 8, and so on — the controller can merge all 32 requests into a single 128-byte transaction. One transaction, 32 threads satisfied. That’s <strong>coalesced access</strong>.</p>
+<p>If the accesses are strided or random — thread 0 accesses byte 0, thread 1 accesses byte 256, thread 2 accesses byte 512 — each thread’s request hits a different cache line. You get 32 separate transactions instead of one. 32× the bandwidth. 32× the pressure on the memory controller. In the worst case, you can turn a memory-bandwidth-efficient kernel into a bandwidth-starved one just by getting the access pattern wrong.</p>
+<p><img src="/images/gpu/memory_coalescing.svg" alt="Memory coalescing — contiguous warp access merges into one transaction vs strided access generating 32"><br><em>Coalesced (top): 32 threads hit a contiguous 128-byte region — one transaction. Strided (bottom): each thread hits a different cache line — 32 transactions, 32× bandwidth.</em></p>
+<p>The coalescing requirement shapes how you should lay out your data. The classic example is matrices. If you store a matrix in <strong>row-major order</strong> and access it row-by-row (each thread in a warp reads a different column of the same row), accesses are contiguous and coalesce perfectly. If you access it column-by-column (each thread reads a different row, meaning their addresses are separated by the matrix width), accesses are strided and you get terrible throughput.</p>
+<p>This is why <strong>Structure of Arrays (SoA)</strong> outperforms <strong>Array of Structures (AoS)</strong> on GPUs for most workloads. In AoS, thread i accesses <code>data[i].x</code> — and adjacent threads access <code>data[i].x</code>, <code>data[i+1].x</code>… which are separated by the full struct size. In SoA, all x values are contiguous: <code>data.x[i]</code>, <code>data.x[i+1]</code>, perfect for coalescing.</p>
+<p>Coalescing is the GPU’s hardware-enforced version of spatial locality. The CPU prefetcher exploits spatial locality by automatically fetching the cache line around a requested address. The GPU memory controller exploits it by merging concurrent thread accesses into fewer transactions — but only if those accesses happen to be contiguous. Getting this right is the programmer’s responsibility.</p>
+<hr>
+<h2 id="Shared-Memory-The-Programmer-Managed-Prefetch-Buffer"><a href="#Shared-Memory-The-Programmer-Managed-Prefetch-Buffer" class="headerlink" title="Shared Memory: The Programmer-Managed Prefetch Buffer"></a>Shared Memory: The Programmer-Managed Prefetch Buffer</h2><p>Once your accesses are coalesced, the next layer is <strong>shared memory</strong> — the most important tool for latency hiding that the GPU programmer directly controls.</p>
+<p>Shared memory is <strong>on-chip SRAM</strong>, physically the same memory bank as the L1 cache, but explicitly managed by the programmer rather than by hardware. On an A100, each SM has up to 164 KB of combined L1&#x2F;shared memory, configurable between the two. Shared memory access latency is around 20–30 cycles — not as fast as registers, but orders of magnitude faster than global memory.</p>
+<p>The key pattern is <strong>tiling</strong>. Instead of having each thread fetch its own data from global memory on demand, a whole thread block cooperates to load a tile of data from global memory into shared memory first — and then all threads read from shared memory for their computation. The global memory load happens once, coalesced, for the whole tile. Every subsequent read is fast on-chip.</p>
+<p><img src="/images/gpu/shared_memory_stencil_halo.svg" alt="Shared memory stencil halo — threads cooperatively load a tile with halo into shared memory before computing"><br><em>Tiling with a halo region. Each thread block loads its tile plus a border into shared memory cooperatively. Every thread then reads its neighbours from shared memory instead of global memory — eliminating redundant global reads.</em></p>
+<p>The classic example is matrix multiplication. Naively, computing C &#x3D; A × B has each thread independently loading an entire row of A and column of B from global memory — with massive redundancy, since adjacent threads load overlapping data. With shared memory tiling, each thread block loads a tile of A and a tile of B into shared memory, does the partial dot products, then loads the next tiles. The global memory traffic drops by a factor equal to the tile size.</p>
+<h3 id="Bank-Conflicts"><a href="#Bank-Conflicts" class="headerlink" title="Bank Conflicts"></a>Bank Conflicts</h3><p>Shared memory is divided into <strong>32 banks</strong>, one per lane in a warp. If all 32 threads in a warp access different banks, all accesses are served in parallel — one cycle. If two or more threads access the same bank (but different addresses within it), those accesses are <strong>serialised</strong> — a bank conflict. In the worst case, all 32 threads hit the same bank and you’re back to sequential access.</p>
+<p><img src="/images/gpu/shared_memory_bank_conflicts.svg" alt="Shared memory bank conflicts — conflict-free vs serialised access patterns"><br><em>Conflict-free (top): each thread hits a different bank, all served in one cycle. Bank conflict (bottom): multiple threads hit the same bank, serialised into multiple passes.</em></p>
+<p>The fix is usually <strong>padding</strong> — adding an extra element to each row of a 2D shared memory array so that the layout shifts relative to the 32-bank boundary — or <strong>swizzling</strong>, reordering the mapping between logical and physical addresses to spread accesses across banks. Both are about making sure that threads in the same warp always land on different banks.</p>
+<hr>
+<h2 id="The-Async-Pipeline-Overlapping-Memory-and-Compute"><a href="#The-Async-Pipeline-Overlapping-Memory-and-Compute" class="headerlink" title="The Async Pipeline: Overlapping Memory and Compute"></a>The Async Pipeline: Overlapping Memory and Compute</h2><p>Tiling with shared memory hides latency by reusing data. But loading a tile still takes time — you call <code>__syncthreads()</code>, wait for the tile to arrive, then start computing. The SM sits idle during the load.</p>
+<p>The next layer eliminates that idle time: <strong>software pipelining</strong> using asynchronous memory copies.</p>
+<p>CUDA’s <code>cp.async</code> instruction (introduced in Ampere, sm_80) copies data directly from global memory to shared memory <strong>without going through registers</strong>, and — critically — without stalling the warp that issued it. The warp continues executing other instructions while the copy completes in the background. You synchronise only when you actually need the data.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">// Async copy: global → shared, no register roundtrip, non-blocking</span><br><span class="line">__pipeline_memcpy_async(smem + dst_offset, gmem + src_offset, sizeof(float4));</span><br><span class="line">__pipeline_commit();          // mark end of a pipeline stage</span><br><span class="line">// ... do other work ...</span><br><span class="line">__pipeline_wait_prior(0);     // wait for the most recent committed stage</span><br></pre></td></tr></table></figure>
+
+<p>The canonical pattern built on top of this is <strong>double buffering</strong>: you maintain two tiles in shared memory simultaneously. While you’re computing on tile A, you’re loading tile B asynchronously. When computation on A finishes, B is (ideally) already ready. You flip the buffers and repeat. The memory latency of loading the next tile is completely hidden behind the compute of the current one.</p>
+<p><img src="/images/gpu/prefetch_ii/double_buffer_pipeline.svg" alt="Double buffer pipeline — tile A computing while tile B loads asynchronously"><br><em>Double buffering. Stage N compute and stage N+1 load overlap. When compute finishes, the next tile is already in shared memory. The memory stall disappears.</em></p>
+<p>With deeper pipelines — three or four stages — you can tolerate even higher memory latency. CUTLASS, NVIDIA’s high-performance linear algebra library, uses multi-stage pipelines extensively. The number of pipeline stages is a tunable parameter: more stages hide more latency but consume more shared memory, which limits occupancy. The same tradeoff again.</p>
+<h3 id="cuda-memcpy-async-and-cuda-barrier"><a href="#cuda-memcpy-async-and-cuda-barrier" class="headerlink" title="cuda::memcpy_async and cuda::barrier"></a><code>cuda::memcpy_async</code> and <code>cuda::barrier</code></h3><p>The higher-level C++ interface for this is <code>cuda::memcpy_async</code> with <code>cuda::barrier</code> for synchronisation. It’s the same mechanism as <code>cp.async</code> but with cleaner warp-group-level coordination semantics. The barrier tracks how many bytes are in flight and lets you wait on them precisely.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">cuda::barrier&lt;cuda::thread_scope_block&gt; bar;</span><br><span class="line">init(&amp;bar, blockDim.x);</span><br><span class="line"></span><br><span class="line">// All threads in the block participate in this async copy</span><br><span class="line">cuda::memcpy_async(smem_tile, gmem_tile, tile_bytes, bar);</span><br><span class="line"></span><br><span class="line">// Do something independent while the copy is in flight</span><br><span class="line">do_independent_work();</span><br><span class="line"></span><br><span class="line">// Wait for the copy</span><br><span class="line">bar.arrive_and_wait();</span><br></pre></td></tr></table></figure>
+
+<p>The key shift in thinking here: instead of “load, sync, compute”, the pattern is “issue load, compute something else, sync only when necessary.” This is software prefetching — you’re explicitly requesting data before you need it, in exactly the same spirit as a CPU software prefetch instruction, but with the structure of the pipeline making the timing disciplined.</p>
+<hr>
+<h2 id="Register-Prefetching-and-the-Tensor-Core-Pipeline"><a href="#Register-Prefetching-and-the-Tensor-Core-Pipeline" class="headerlink" title="Register Prefetching and the Tensor Core Pipeline"></a>Register Prefetching and the Tensor Core Pipeline</h2><p>For Tensor Core workloads — the matrix multiply-accumulate operations at the heart of deep learning — there’s a layer below shared memory: <strong>register-level prefetching</strong>.</p>
+<p>The <code>ldmatrix</code> PTX instruction loads a matrix fragment from shared memory directly into the register file in the layout expected by <code>mma</code> (the Tensor Core matrix multiply instruction). Because <code>mma</code> needs its operands in a specific register arrangement across the 32 threads of a warp, loading them manually with regular loads is error-prone and slow. <code>ldmatrix</code> does it in one instruction.</p>
+<p>The pipeline for a high-performance GEMM kernel using this looks like:</p>
+<ol>
+<li><code>cp.async</code> loads the next tile from global → shared (asynchronous)</li>
+<li><code>ldmatrix</code> loads the current tile from shared → registers (fast, on-chip)</li>
+<li><code>mma</code> executes matrix multiply on register-resident fragments (Tensor Core)</li>
+<li>Stages 1–3 overlap across pipeline stages</li>
+</ol>
+<p>The register file here is acting as the final prefetch buffer — one level closer to the execution unit than shared memory, completely hiding the shared memory access latency during compute.</p>
+<p>This is what production GEMM kernels — cuBLAS, CUTLASS, FlashAttention — are actually doing. The performance gap between a naive matrix multiply and a cuBLAS call isn’t magic. It’s this pipeline, carefully orchestrated across all three levels: global → shared (async), shared → registers (ldmatrix), registers → Tensor Core (mma).</p>
+<hr>
+<h2 id="TMA-The-Hopper-Shift"><a href="#TMA-The-Hopper-Shift" class="headerlink" title="TMA: The Hopper Shift"></a>TMA: The Hopper Shift</h2><p>Everything above is the Ampere-era story. Hopper (H100, sm_90) introduced something that changes the picture significantly: the <strong>Tensor Memory Accelerator (TMA)</strong>.</p>
+<p>TMA is a dedicated hardware engine — separate from the SM — that handles bulk asynchronous data movement between global memory and shared memory. Instead of having threads issue <code>cp.async</code> instructions, you describe the transfer to TMA through a <strong>tensor descriptor</strong> and let the hardware DMA engine handle it entirely.</p>
+<p>The tensor descriptor encodes the shape, stride, and data type of the tensor in global memory, plus the destination in shared memory. You set it up once, then issue a TMA load with a single instruction. The SM doesn’t poll for completion. Instead, TMA signals a <code>cuda::barrier</code> when the transfer is done.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">// Describe the source tensor in global memory</span><br><span class="line">CUtensorMap tensor_map;</span><br><span class="line">cuTensorMapEncodeTiled(&amp;tensor_map, CU_TENSOR_MAP_DATA_TYPE_FLOAT32,</span><br><span class="line">                       rank, global_ptr, shape, stride,</span><br><span class="line">                       tile_shape, /*interleave=*/CU_TENSOR_MAP_INTERLEAVE_NONE,</span><br><span class="line">                       /*swizzle=*/CU_TENSOR_MAP_SWIZZLE_128B, ...);</span><br><span class="line"></span><br><span class="line">// One thread issues the TMA load — the SM is otherwise free</span><br><span class="line">if (threadIdx.x == 0) &#123;</span><br><span class="line">    cp.async.bulk.tensor.2d.shared::cluster.global.mbarrier::complete_tx::bytes</span><br><span class="line">        [smem_tile], [tensor_map, &#123;tile_row, tile_col&#125;], bar;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>The implications are significant. With <code>cp.async</code>, every thread in a warp participates in the copy — consuming instruction slots and execution bandwidth. With TMA, a <em>single thread</em> issues the transfer and the entire warp is free to do other work, or even to sleep. The memory bandwidth comes for free in the background.</p>
+<p><img src="/images/gpu/prefetch_ii/tma_engine_overview.svg" alt="TMA engine overview — tensor descriptor, DMA engine, and shared memory destination"><br><em>TMA decouples the SM from data movement entirely. The descriptor encodes source layout; the DMA engine handles the transfer; the SM gets a barrier signal when it’s done. No thread bandwidth consumed.</em></p>
+<p>TMA also enables <strong>multicast</strong> — a single TMA load can broadcast the same data to the shared memory of multiple thread blocks in a cluster simultaneously. This is the H100’s cluster-level shared memory feature (distributed shared memory). One transfer, many recipients.</p>
+<p>For large matrix multiplications, this means the bottleneck shifts: you’re no longer constrained by how fast threads can issue copy instructions. The TMA engine saturates HBM bandwidth independently of what the SM compute pipeline is doing. On large GEMMs, this is the primary reason H100 can actually achieve close to its theoretical peak throughput.</p>
+<hr>
+<h2 id="L2-Prefetch-Hints-and-Cache-Eviction-Control"><a href="#L2-Prefetch-Hints-and-Cache-Eviction-Control" class="headerlink" title="L2 Prefetch Hints and Cache Eviction Control"></a>L2 Prefetch Hints and Cache Eviction Control</h2><p>Below all the shared memory machinery, there are lower-level hints you can give the GPU’s cache hierarchy. These are PTX-level instructions that most CUDA programmers never touch, but they matter for specific workloads.</p>
+<p><strong><code>prefetch</code></strong> and <strong><code>prefetchu</code></strong> issue a prefetch hint for a global memory address into the L1 or L2 cache. Unlike on CPUs where hardware prefetchers issue these automatically, on GPUs you do it manually — and they’re best used for irregular access patterns where the hardware can’t predict what’s coming.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">// Prefetch into L2 cache</span><br><span class="line">asm(&quot;prefetch.global.L2 [%0];&quot; :: &quot;l&quot;(addr));</span><br><span class="line"></span><br><span class="line">// Prefetch into L1</span><br><span class="line">asm(&quot;prefetch.global.L1 [%0];&quot; :: &quot;l&quot;(addr));</span><br></pre></td></tr></table></figure>
+
+<p>More practically useful are <strong>cache eviction hints</strong>. A load instruction can carry a hint about how aggressively to cache the data:</p>
+<ul>
+<li><strong><code>.ca</code> (cache at all levels)</strong> — default. Data stays in L1 and L2.</li>
+<li><strong><code>.cg</code> (cache at global level)</strong> — bypass L1, cache only in L2. Useful for data that won’t be reused within the same SM but might be reused across SMs.</li>
+<li><strong><code>.cs</code> (cache streaming &#x2F; evict-first)</strong> — mark for early eviction. Useful for data you’ll read exactly once and don’t want polluting the cache.</li>
+<li><strong><code>.lu</code> (last use)</strong> — hint that this is the final access to this cache line. Free the cache entry immediately after the load.</li>
+</ul>
+<p>The practical use case: streaming kernels that process large arrays sequentially and never reuse data. Using <code>.cs</code> or <code>.cg</code> instead of the default <code>.ca</code> prevents these one-shot reads from thrashing the L1 and L2, leaving cache capacity for data that’s actually reused — shared memory tiles, frequently accessed constants.</p>
+<hr>
+<h2 id="Prefetching-in-Irregular-Workloads"><a href="#Prefetching-in-Irregular-Workloads" class="headerlink" title="Prefetching in Irregular Workloads"></a>Prefetching in Irregular Workloads</h2><p>Everything above assumes a regular access pattern — data laid out in tensors, accessed in tiles, with clear spatial locality. A huge class of real workloads doesn’t look like this.</p>
+<p><strong>Graph neural networks</strong> access node embeddings by following edges — which are essentially random indices into a large embedding table. <strong>Sparse attention</strong> (as in many transformer variants) attends to non-contiguous positions determined at runtime. <strong>Embedding lookups</strong> in recommendation systems access billions of parameters with random keys. These access patterns are fundamentally irregular. Coalescing is unlikely. Tiling doesn’t straightforwardly apply.</p>
+<p>The strategies here are different:</p>
+<p><strong>Sorting and reordering</strong> — if you know the set of indices to access in advance, sort them and group nearby accesses together. This isn’t always possible at inference time, but during training or batch processing it can dramatically improve effective coalescing.</p>
+<p><strong>Software gather</strong> — explicitly load a tile of the embedding table into shared memory and have threads do their lookups from there. Works when a block’s accesses are concentrated enough in one region.</p>
+<p><strong>Warp-level gather with shuffle</strong> — use <code>__shfl_sync</code> to share addresses across a warp and collectively manage which thread fetches which element, so you can at least avoid redundant global loads.</p>
+<p><strong>UVM prefetch hints</strong> for datasets that don’t fit in GPU memory. <code>cudaMemPrefetchAsync</code> moves pages to the GPU proactively rather than waiting for a page fault during kernel execution. For workloads that access the same subset of a large dataset repeatedly, prefetching those pages before the kernel launches can eliminate the fault overhead entirely.</p>
+<p>Irregular access patterns are where GPU performance is hardest to recover. The hardware has no prefetcher smart enough to help, the programmer has limited tools, and the physics of DRAM mean random access will always be expensive. The best strategies are usually about restructuring the problem to introduce more locality rather than fixing the access pattern after the fact.</p>
+<hr>
+<h2 id="Unified-Memory-and-Cross-PCIe-Prefetching"><a href="#Unified-Memory-and-Cross-PCIe-Prefetching" class="headerlink" title="Unified Memory and Cross-PCIe Prefetching"></a>Unified Memory and Cross-PCIe Prefetching</h2><p>When a dataset is larger than GPU memory, CUDA’s <strong>Unified Memory</strong> system allows the GPU to access CPU memory transparently — the GPU’s memory management unit generates a page fault, the driver migrates the page from CPU to GPU over PCIe, and execution resumes. It works, but a page fault mid-kernel is expensive: hundreds of microseconds of stall while the page is migrated.</p>
+<p><strong><code>cudaMemPrefetchAsync</code></strong> is the explicit way to avoid this. It tells the CUDA runtime to start migrating pages to a specific device before you need them, while other work is running:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">// Prefetch array to GPU before the kernel that needs it</span><br><span class="line">cudaMemPrefetchAsync(data, size, device_id, stream);</span><br><span class="line">// Launch the kernel — data should already be present</span><br><span class="line">kernel&lt;&lt;&lt;grid, block, 0, stream&gt;&gt;&gt;(data, ...);</span><br></pre></td></tr></table></figure>
+
+<p>The mechanism uses the same page migration infrastructure as demand faulting, but runs asynchronously in the background. When the kernel launches, the pages are (ideally) already on the GPU and no faults occur. The latency of the PCIe transfer is hidden behind other work on the CPU or other GPU streams.</p>
+<p><strong>Access counters</strong> (available on NVLink-connected systems) take this further — hardware tracks which CPU pages a GPU is accessing and automatically issues prefetch requests for pages that appear to be needed. This is the closest GPU Unified Memory gets to a hardware prefetcher.</p>
+<p>The honest assessment: for performance-critical code, explicit data movement (<code>cudaMemcpy</code>) with manually managed memory pools is still faster than Unified Memory with prefetch hints. The hints help, but they’re working around a system that was designed for programmability rather than peak performance. If you’re hitting PCIe bandwidth limits, restructuring your data pipeline so that CPU-to-GPU transfers overlap with computation is more reliable than relying on the prefetcher to time things correctly.</p>
+<hr>
+<h2 id="Putting-It-Together-The-Layered-Picture"><a href="#Putting-It-Together-The-Layered-Picture" class="headerlink" title="Putting It Together: The Layered Picture"></a>Putting It Together: The Layered Picture</h2><p>The GPU’s answer to the memory wall isn’t one thing. It’s a stack, and each layer addresses a different part of the problem:</p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Mechanism</th>
+<th>Who controls it</th>
+<th>What it hides</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Warp scheduling</td>
+<td>Context switch on stall</td>
+<td>Hardware</td>
+<td>DRAM latency (when enough warps exist)</td>
+</tr>
+<tr>
+<td>Coalescing</td>
+<td>Merge 32 thread requests</td>
+<td>Hardware + programmer</td>
+<td>Bandwidth waste from irregular access</td>
+</tr>
+<tr>
+<td>Shared memory tiling</td>
+<td>On-chip data reuse</td>
+<td>Programmer</td>
+<td>Repeated global memory reads</td>
+</tr>
+<tr>
+<td><code>cp.async</code> &#x2F; double buffering</td>
+<td>Overlap load with compute</td>
+<td>Programmer</td>
+<td>Tile load latency</td>
+</tr>
+<tr>
+<td><code>ldmatrix</code> + <code>mma</code> pipeline</td>
+<td>Register-level staging</td>
+<td>Programmer + compiler</td>
+<td>Shared memory access during compute</td>
+</tr>
+<tr>
+<td>TMA (Hopper)</td>
+<td>Hardware DMA engine</td>
+<td>Programmer</td>
+<td>SM instruction bandwidth for copies</td>
+</tr>
+<tr>
+<td>L2 prefetch hints</td>
+<td>Speculative cache fills</td>
+<td>Programmer</td>
+<td>Irregular access latency (partially)</td>
+</tr>
+<tr>
+<td><code>cudaMemPrefetchAsync</code></td>
+<td>Async page migration</td>
+<td>Programmer</td>
+<td>PCIe transfer latency</td>
+</tr>
+</tbody></table>
+<p>The highest-performance GPU kernels — cuBLAS GEMM on H100, FlashAttention-3, CUTLASS conv kernels — are implementing most of this stack simultaneously. Warp occupancy tuned to the register budget. Coalesced global loads. Shared memory tiles with <code>cp.async</code>. Multi-stage pipelines. TMA for the bulk data movement. L2 hints for streaming reads.</p>
+<p>None of it is magic. Each layer is solving a concrete, physical problem in the memory hierarchy. The CPU part of this story — hardware prefetchers watching a single thread’s access stream — simply doesn’t exist in the same form here. The GPU version of that responsibility sits with you, the programmer, expressed through the access patterns you choose, the shared memory you allocate, and the async pipeline you construct.</p>
+<p>That’s the real difference between CPU and GPU latency hiding. On a CPU, the hardware does most of it automatically. On a GPU, the hardware gives you the tools and expects you to build the pipeline yourself.</p>
+<hr>
+<h2 id="Further-Reading"><a href="#Further-Reading" class="headerlink" title="Further Reading"></a>Further Reading</h2><p><strong>Coalescing and memory access patterns</strong></p>
+<ul>
+<li>NVIDIA CUDA C++ Best Practices Guide — <a target="_blank" rel="noopener" href="https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html#memory-optimizations">Memory Optimizations</a></li>
+<li>Harris, M. — <a target="_blank" rel="noopener" href="https://developer.download.nvidia.com/assets/cuda/files/reduction.pdf">Optimizing Parallel Reduction in CUDA</a></li>
+</ul>
+<p><strong>Shared memory and tiling</strong></p>
+<ul>
+<li>Volkov, V. — <a target="_blank" rel="noopener" href="https://www.nvidia.com/content/gtc-2010/pdfs/2238_gtc2010.pdf">Better Performance at Lower Occupancy</a> (GTC 2010) — the paper that reframed the occupancy tradeoff</li>
+<li>CUTLASS documentation — <a target="_blank" rel="noopener" href="https://github.com/NVIDIA/cutlass/blob/main/media/docs/efficient_gemm.md">Efficient GEMM</a></li>
+</ul>
+<p><strong>Async pipelines and cp.async</strong></p>
+<ul>
+<li>NVIDIA — <a target="_blank" rel="noopener" href="https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#asynchronous-data-copies">Asynchronous Data Copies</a></li>
+<li>Thakkar et al. — <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2501.04565">CUTLASS: Fast Linear Algebra in CUDA C++</a></li>
+</ul>
+<p><strong>Tensor Memory Accelerator (TMA)</strong></p>
+<ul>
+<li>NVIDIA Hopper Architecture Whitepaper — <a target="_blank" rel="noopener" href="https://resources.nvidia.com/en-us-tensor-core/gtc22-whitepaper-hopper">NVIDIA H100 Tensor Core GPU Architecture</a></li>
+<li>Shah, A. et al. — <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2407.08608">FlashAttention-3: Fast and Accurate Attention with Asynchrony and Low-precision</a> — shows TMA used for attention tile loads</li>
+</ul>
+<p><strong>Irregular access and graph workloads</strong></p>
+<ul>
+<li>Merrill, D. et al. — <a target="_blank" rel="noopener" href="https://dl.acm.org/doi/10.5555/2820083.2820096">Merge-based Parallel Sparse Matrix-Vector Multiplication</a></li>
+<li>Zhang, M. et al. — <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2103.06197">Understanding the Design Space of Sparse&#x2F;Dense Multiphase GNN Dataflows on GPUs</a></li>
+</ul>
+<p><strong>Unified Memory and prefetching</strong></p>
+<ul>
+<li>NVIDIA — <a target="_blank" rel="noopener" href="https://developer.nvidia.com/blog/unified-memory-cuda-beginners/">Unified Memory for CUDA Beginners</a></li>
+<li>Landaverde, R. et al. — <a target="_blank" rel="noopener" href="https://ieeexplore.ieee.org/document/7016190">An Investigation of Unified Memory Access Performance in CUDA</a></li>
+</ul>
+
+  </div>
+
+  <footer class="post-full-footer">
+    
+    <div class="post-tags">
+      <span class="tags-label">Tags:</span>
+      
+      <a href="/tags/Hardware/" class="tag-pill">Hardware</a>
+      
+      <a href="/tags/Computer-Architecture/" class="tag-pill">Computer Architecture</a>
+      
+      <a href="/tags/GPU/" class="tag-pill">GPU</a>
+      
+      <a href="/tags/CUDA/" class="tag-pill">CUDA</a>
+      
+    </div>
+    
+    <div class="post-nav">
+      
+      <a href="/2026/03/25/ahead-of-the-pipeline-a-deep-dive-into-prefetching/" class="post-nav-link prev-post">&larr; Ahead of the Pipeline-I : A Deep Dive into Prefetching Techniques for CPU</a>
+      
+      
+    </div>
+  </footer>
+</article>
+
+      </div>
+      
+    </div>
+  </main>
+
+  <footer class="site-footer">
+  <div class="container">
+    <p>&copy; 2026 Shyam-24o7</p>
+  </div>
+</footer>
+
+
+  <!-- Scroll-to-top button -->
+  <button id="scroll-top" aria-label="Back to top">&#8593;</button>
+
+  <!-- Search index (embedded, no extra package needed) -->
+  <script>
+  window.__searchIndex = [{"title":"Tradeoffs: The Core Essence of Hardware Optimization","path":"/2026/02/28/tradeoffs-core-essence-hardware-optimization/","date":"2026-02-28","tags":["Hardware","Computer Architecture"],"excerpt":"Everything in hardware is a negotiation — and that’s exactly why it’s beautiful. If there’s one thing studying computer architecture has genuinely rewired in how I think, it’s this: there is no perfect design . Every single hardware decision you make is a negotiation. You want more performance? Great….pay with power. Want to save area? Sure… watch your latency climb. Want to go faster? Hope you’re not memory-bound, because the memory wall does not care about your ambitions. And this isn’t some p"},{"title":"Ahead of the Pipeline-II : Prefetching in GPUs — Coalescing, Shared Memory, and the Async Pipeline","path":"/2026/04/23/ahead-of-the-pipeline-ii-prefetching-in-gpus/","date":"2026-04-23","tags":["Hardware","Computer Architecture","GPU","CUDA"],"excerpt":"The CPU bets on prediction. The GPU bets on parallelism. Same problem, completely different answer. Part I of this series covered CPU prefetching — the hardware units, the pattern detection algorithms, the timing problem, and the full taxonomy from next-line detectors up to reinforcement-learning-based prefetchers. If you haven’t read it, the short version is: a CPU prefetcher watches the stream of memory accesses coming from a single thread, detects patterns, and issues speculative requests ahe"},{"title":"Quantization and Pruning: A Structured Survey of Model Compression","path":"/2026/03/04/quantization-pruning-structured-survey-model-compression/","date":"2026-03-04","tags":["Hardware","AI/ML","Quantization"],"excerpt":"The weights don’t lie — most of them are just dead weight. If there’s one thing that becomes obvious once you start thinking seriously about deploying neural networks, it’s that scale is a trap. The models that researchers celebrate for benchmark records are routinely too large to run usefully on anything that isn’t a server rack. Language models with hundreds of billions of parameters. Vision transformers that barely fit in GPU memory. And the gap between what research produces and what actual "},{"title":"Inside the GPU: CUDA, Threads, and the Architecture That Makes It All Work","path":"/2026/03/22/inside-the-gpu-cuda-memory-architecture-and-hierarchy/","date":"2026-03-22","tags":["Hardware","Computer Architecture","GPU","CUDA"],"excerpt":"Thousands of threads. One instruction. This is how GPUs think. If you’ve read my previous post on tradeoffs in hardware, you already know the core intuition: CPUs optimize for latency, GPUs optimize for throughput. One fat sports car vs hundreds of bicycles. That framing is clean, but it’s also a bit unsatisfying once you start asking how . How exactly does a GPU achieve that throughput? What’s actually happening when you launch a CUDA kernel? What does “thousands of threads” even mean at the ha"},{"title":"Ahead of the Pipeline-I : A Deep Dive into Prefetching Techniques for CPU","path":"/2026/03/25/ahead-of-the-pipeline-a-deep-dive-into-prefetching/","date":"2026-03-25","tags":["Hardware","Computer Architecture"],"excerpt":"Your CPU can execute a billion instructions per second. Then it touches memory. And waits. Before anything else: this post covers CPU prefetching only . The GPU&#x2F;CUDA post briefly referenced memory prefetching and promised a deeper treatment and that part is coming in Part II. The GPU’s approach to the same latency problem is architecturally different enough that collapsing both into one post would do neither justice, and honestly the CPU side alone deserves a post entirely on its own. Part "}];
+  </script>
+
+  
+<script src="/js/main.js"></script>
+
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof renderMathInElement !== 'undefined') {
+        renderMathInElement(document.body, {
+          delimiters: [
+            { left: "$$",  right: "$$",  display: true  },
+            { left: "\\[", right: "\\]", display: true  },
+            { left: "$",   right: "$",   display: false },
+            { left: "\\(", right: "\\)", display: false }
+          ],
+          throwOnError: false
+        });
+      }
+    });
+  </script>
+</body>
+</html>
