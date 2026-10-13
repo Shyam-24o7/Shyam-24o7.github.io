@@ -1,0 +1,38 @@
+<svg width="100%" viewBox="0 0 680 244" xmlns="http://www.w3.org/2000/svg">
+<style>
+  text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; dominant-baseline: central; }
+  .title { fill: #e8f0ff; font-size: 14px; font-weight: 500; }
+  .mut { fill: #70829e; font-size: 10px; }
+  .lbl { fill: #c8d2e6; font-size: 11px; }
+  .arrow { stroke: rgba(48,148,255,0.55); stroke-width: 1.2; fill: none; }
+  .head { fill: rgba(48,148,255,0.55); }
+</style>
+<rect width="100%" height="100%" fill="#0b0c14" rx="6"/>
+<text x="340" y="22" text-anchor="middle" class="title">L2 persistence: protect a hot table from a stream of one-time data</text>
+
+<text x="460" y="50" text-anchor="middle" style="fill: rgb(48,148,255); font-size: 11px;">large stream, each line read once (marked streaming)</text>
+<path d="M360 60 L360 92" class="arrow"/><polygon points="355,90 360,98 365,90" class="head"/>
+<path d="M430 60 L430 92" class="arrow"/><polygon points="425,90 430,98 435,90" class="head"/>
+<path d="M500 60 L500 92" class="arrow"/><polygon points="495,90 500,98 505,90" class="head"/>
+<path d="M570 60 L570 92" class="arrow"/><polygon points="565,90 570,98 575,90" class="head"/>
+
+<rect x="40" y="98" width="600" height="50" rx="5" fill="#12131c" stroke="rgba(200,210,230,0.4)"/>
+<rect x="40" y="98" width="180" height="50" rx="5" fill="rgb(5,54,42)" stroke="rgb(0,214,162)" stroke-width="1.2"/>
+<text x="130" y="116" text-anchor="middle" style="fill: #e8f0ff; font-size: 11px; font-weight: 600;">persisting set-aside</text>
+<text x="130" y="132" text-anchor="middle" style="fill: rgb(0,214,162); font-size: 10px;">hot lookup table lives here</text>
+<text x="430" y="116" text-anchor="middle" style="fill: #e8f0ff; font-size: 11px; font-weight: 600;">normal L2</text>
+<text x="430" y="132" text-anchor="middle" class="mut">streaming lines are the first to be evicted</text>
+<text x="20" y="123" text-anchor="middle" class="mut" transform="rotate(-90 20 123)">L2</text>
+
+<path d="M360 152 L360 182" class="arrow"/><polygon points="355,180 360,188 365,180" class="head"/>
+<path d="M430 152 L430 182" class="arrow"/><polygon points="425,180 430,188 435,180" class="head"/>
+<path d="M500 152 L500 182" class="arrow"/><polygon points="495,180 500,188 505,180" class="head"/>
+<path d="M570 152 L570 182" class="arrow"/><polygon points="565,180 570,188 575,180" class="head"/>
+<text x="460" y="198" text-anchor="middle" class="mut">flows through and leaves</text>
+
+<path d="M100 152 Q 100 186 130 186 Q 160 186 160 152" stroke="rgba(0,214,162,0.7)" stroke-width="1.2" fill="none"/>
+<polygon points="155,156 160,148 165,156" fill="rgba(0,214,162,0.7)"/>
+<text x="130" y="200" text-anchor="middle" style="fill: rgb(0,214,162); font-size: 10px;">reused every iteration, stays resident</text>
+
+<text x="340" y="228" text-anchor="middle" class="mut">Set with an access policy window on a stream: hitProp = persisting, missProp = streaming. Ampere and newer.</text>
+</svg>

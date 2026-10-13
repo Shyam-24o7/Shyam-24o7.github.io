@@ -1,0 +1,57 @@
+<svg width="100%" viewBox="0 0 680 296" xmlns="http://www.w3.org/2000/svg">
+<style>
+  text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; dominant-baseline: central; }
+  .title { fill: #e8f0ff; font-size: 14px; font-weight: 500; }
+  .lbl { fill: #e8f0ff; font-size: 11px; font-weight: 500; }
+  .sub { fill: #70829e; font-size: 9.5px; }
+  .mut { fill: #70829e; font-size: 10.5px; }
+  .arrow { stroke: rgba(200,210,230,0.55); stroke-width: 1.2; fill: none; }
+  .head { fill: rgba(200,210,230,0.55); }
+  .prod { fill: rgb(10,34,64); stroke: rgb(48,148,255); stroke-width: 1; }
+  .cons { fill: rgb(40,22,64); stroke: rgb(170,130,255); stroke-width: 1; }
+  .full { fill: rgb(5,54,42); stroke: rgb(0,214,162); stroke-width: 1; }
+  .fill { fill: rgb(10,34,64); stroke: rgb(48,148,255); stroke-width: 1; stroke-dasharray: 4 3; }
+  .empty { fill: #12131c; stroke: rgba(112,130,158,0.6); stroke-width: 1; stroke-dasharray: 3 3; }
+</style>
+<rect width="100%" height="100%" fill="#0b0c14" rx="6"/>
+<text x="340" y="22" text-anchor="middle" class="title">Hopper warp specialisation: producers move data, consumers do math</text>
+
+<rect x="20" y="92" width="140" height="76" rx="6" class="prod"/>
+<text x="90" y="110" text-anchor="middle" class="lbl">producer warp</text>
+<text x="90" y="126" text-anchor="middle" class="sub">one thread issues</text>
+<text x="90" y="139" text-anchor="middle" class="sub">TMA tile copies</text>
+<text x="90" y="155" text-anchor="middle" class="sub">few registers</text>
+
+<text x="329" y="70" text-anchor="middle" class="mut">shared memory: 4 pipeline stages</text>
+<rect x="190" y="92" width="62" height="76" rx="4" class="full"/>
+<text x="221" y="118" text-anchor="middle" class="lbl">stage 0</text><text x="221" y="142" text-anchor="middle" style="fill: rgb(0,214,162); font-size: 10px;">full</text>
+<rect x="262" y="92" width="62" height="76" rx="4" class="full"/>
+<text x="293" y="118" text-anchor="middle" class="lbl">stage 1</text><text x="293" y="142" text-anchor="middle" style="fill: rgb(0,214,162); font-size: 10px;">full</text>
+<rect x="334" y="92" width="62" height="76" rx="4" class="fill"/>
+<text x="365" y="118" text-anchor="middle" class="lbl">stage 2</text><text x="365" y="142" text-anchor="middle" style="fill: rgb(48,148,255); font-size: 10px;">TMA landing</text>
+<rect x="406" y="92" width="62" height="76" rx="4" class="empty"/>
+<text x="437" y="118" text-anchor="middle" class="lbl">stage 3</text><text x="437" y="142" text-anchor="middle" class="sub">empty</text>
+
+<line x1="160" y1="130" x2="184" y2="130" class="arrow"/><polygon points="182,125 190,130 182,135" class="head"/>
+
+<rect x="500" y="56" width="160" height="70" rx="6" class="cons"/>
+<text x="580" y="74" text-anchor="middle" class="lbl">consumer warpgroup 1</text>
+<text x="580" y="90" text-anchor="middle" class="sub">128 threads issuing wgmma</text>
+<text x="580" y="104" text-anchor="middle" class="sub">reads tiles straight from smem</text>
+<text x="580" y="117" text-anchor="middle" class="sub">many registers (accumulators)</text>
+<rect x="500" y="136" width="160" height="70" rx="6" class="cons"/>
+<text x="580" y="154" text-anchor="middle" class="lbl">consumer warpgroup 2</text>
+<text x="580" y="170" text-anchor="middle" class="sub">ping-pong: runs its epilogue</text>
+<text x="580" y="184" text-anchor="middle" class="sub">while warpgroup 1 does MMA,</text>
+<text x="580" y="197" text-anchor="middle" class="sub">then they swap</text>
+
+<path d="M468 112 L494 96" class="arrow"/><polygon points="490,92 499,93 494,100" class="head"/>
+<path d="M468 150 L494 166" class="arrow"/><polygon points="494,160 499,168 490,169" class="head"/>
+<text x="484" y="131" text-anchor="middle" class="sub">wait</text>
+
+<path d="M580 206 L580 226 L90 226 L90 174" class="arrow"/><polygon points="85,176 90,168 95,176" class="head"/>
+<text x="335" y="236" text-anchor="middle" class="sub">consumers arrive on the stage's empty barrier: the slot is free for the next TMA load</text>
+
+<text x="340" y="262" text-anchor="middle" style="fill: #c8d2e6; font-size: 11px;">TMA completes each stage's mbarrier with a byte count, so consumers know exactly when a tile has landed.</text>
+<text x="340" y="280" text-anchor="middle" class="mut">setmaxnreg moves registers from producers to consumers. This is the shape of FlashAttention-3 and CUTLASS Hopper GEMMs.</text>
+</svg>

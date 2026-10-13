@@ -1,0 +1,47 @@
+<svg width="100%" viewBox="0 0 680 266" xmlns="http://www.w3.org/2000/svg">
+<style>
+  text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; dominant-baseline: central; }
+  .title { fill: #e8f0ff; font-size: 14px; font-weight: 500; }
+  .mut { fill: #70829e; font-size: 10px; }
+  .lbl { fill: #c8d2e6; font-size: 11px; }
+  .ld { fill: rgb(10,34,64); stroke: rgb(48,148,255); stroke-width: 0.9; }
+  .cp { fill: rgb(5,54,42); stroke: rgb(0,214,162); stroke-width: 0.9; }
+  .t { fill: #e8f0ff; font-size: 9.5px; }
+</style>
+<rect width="100%" height="100%" fill="#0b0c14" rx="6"/>
+<text x="340" y="22" text-anchor="middle" class="title">Software pipelining: load the next tiles while computing this one</text>
+
+<text x="20" y="48" class="lbl" style="fill: rgb(255,110,110); font-weight: 600;">Load, sync, compute (no overlap)</text>
+<text x="92" y="74" text-anchor="end" class="mut">one warp</text>
+<rect x="100" y="62" width="60" height="24" rx="2" class="ld"/><text x="130" y="74" text-anchor="middle" class="t">load 0</text>
+<rect x="160" y="62" width="50" height="24" rx="2" class="cp"/><text x="185" y="74" text-anchor="middle" class="t">math 0</text>
+<rect x="210" y="62" width="60" height="24" rx="2" class="ld"/><text x="240" y="74" text-anchor="middle" class="t">load 1</text>
+<rect x="270" y="62" width="50" height="24" rx="2" class="cp"/><text x="295" y="74" text-anchor="middle" class="t">math 1</text>
+<rect x="320" y="62" width="60" height="24" rx="2" class="ld"/><text x="350" y="74" text-anchor="middle" class="t">load 2</text>
+<rect x="380" y="62" width="50" height="24" rx="2" class="cp"/><text x="405" y="74" text-anchor="middle" class="t">math 2</text>
+<rect x="430" y="62" width="60" height="24" rx="2" class="ld"/><text x="460" y="74" text-anchor="middle" class="t">load 3</text>
+<rect x="490" y="62" width="50" height="24" rx="2" class="cp"/><text x="515" y="74" text-anchor="middle" class="t">math 3</text>
+<line x1="540" y1="56" x2="540" y2="214" stroke="rgba(255,110,110,0.6)" stroke-width="1" stroke-dasharray="4 3"/>
+<text x="546" y="100" class="mut" style="fill: rgb(255,110,110);">done</text>
+
+<text x="20" y="118" class="lbl" style="fill: rgb(0,214,162); font-weight: 600;">Multistage pipeline with cp.async</text>
+<text x="92" y="139" text-anchor="end" class="mut">copies</text>
+<rect x="100" y="130" width="60" height="18" rx="2" class="ld"/><text x="130" y="139" text-anchor="middle" class="t">load 0</text>
+<rect x="110" y="152" width="60" height="18" rx="2" class="ld"/><text x="140" y="161" text-anchor="middle" class="t">load 1</text>
+<rect x="160" y="130" width="60" height="18" rx="2" class="ld"/><text x="190" y="139" text-anchor="middle" class="t">load 2</text>
+<rect x="210" y="152" width="60" height="18" rx="2" class="ld"/><text x="240" y="161" text-anchor="middle" class="t">load 3</text>
+<text x="92" y="190" text-anchor="end" class="mut">math</text>
+<rect x="160" y="178" width="50" height="24" rx="2" class="cp"/><text x="185" y="190" text-anchor="middle" class="t">math 0</text>
+<rect x="210" y="178" width="50" height="24" rx="2" class="cp"/><text x="235" y="190" text-anchor="middle" class="t">math 1</text>
+<rect x="260" y="178" width="50" height="24" rx="2" class="cp"/><text x="285" y="190" text-anchor="middle" class="t">math 2</text>
+<rect x="310" y="178" width="50" height="24" rx="2" class="cp"/><text x="335" y="190" text-anchor="middle" class="t">math 3</text>
+<line x1="360" y1="124" x2="360" y2="214" stroke="rgba(0,214,162,0.7)" stroke-width="1" stroke-dasharray="4 3"/>
+<text x="366" y="160" class="mut" style="fill: rgb(0,214,162);">done</text>
+
+<line x1="100" y1="216" x2="640" y2="216" stroke="rgba(222,220,209,0.45)" stroke-width="1"/>
+<polygon points="636,211 644,216 636,221" fill="rgba(222,220,209,0.45)"/>
+<text x="640" y="228" text-anchor="end" class="mut">time</text>
+
+<text x="340" y="244" text-anchor="middle" style="fill: #c8d2e6; font-size: 11px;">Tile k+1 and k+2 are already on their way while tile k is computed, so the math runs back to back.</text>
+<text x="340" y="258" text-anchor="middle" class="mut">Each extra stage costs one more tile of shared memory.</text>
+</svg>

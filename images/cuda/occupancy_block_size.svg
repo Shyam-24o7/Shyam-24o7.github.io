@@ -1,0 +1,47 @@
+<svg width="100%" viewBox="0 0 680 296" xmlns="http://www.w3.org/2000/svg">
+<style>
+  text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; dominant-baseline: central; }
+  .title { fill: #e8f0ff; font-size: 14px; font-weight: 500; }
+  .lbl { fill: #c8d2e6; font-size: 11px; }
+  .mut { fill: #70829e; font-size: 10.5px; }
+  .a { fill: rgb(5,54,42); stroke: rgb(0,214,162); stroke-width: 0.8; }
+  .b { fill: rgb(8,84,66); stroke: rgb(0,214,162); stroke-width: 0.8; }
+  .pct { fill: rgb(0,214,162); font-size: 11px; font-weight: 600; }
+</style>
+<rect width="100%" height="100%" fill="#0b0c14" rx="6"/>
+<text x="340" y="22" text-anchor="middle" class="title">Threads resident on one SM with 1536 thread slots</text>
+<text x="340" y="40" text-anchor="middle" class="mut">RTX 30 and 40 series SMs. Each segment is one resident block.</text>
+
+<!-- 128 x 12 -->
+<text x="140" y="79" text-anchor="end" class="lbl">128 threads × 12</text>
+<rect x="150" y="64" width="40" height="30" class="a"/><rect x="190" y="64" width="40" height="30" class="b"/>
+<rect x="230" y="64" width="40" height="30" class="a"/><rect x="270" y="64" width="40" height="30" class="b"/>
+<rect x="310" y="64" width="40" height="30" class="a"/><rect x="350" y="64" width="40" height="30" class="b"/>
+<rect x="390" y="64" width="40" height="30" class="a"/><rect x="430" y="64" width="40" height="30" class="b"/>
+<rect x="470" y="64" width="40" height="30" class="a"/><rect x="510" y="64" width="40" height="30" class="b"/>
+<rect x="550" y="64" width="40" height="30" class="a"/><rect x="590" y="64" width="40" height="30" class="b"/>
+<text x="652" y="79" text-anchor="middle" class="pct">100%</text>
+
+<!-- 256 x 6 -->
+<text x="140" y="127" text-anchor="end" class="lbl">256 threads × 6</text>
+<rect x="150" y="112" width="80" height="30" class="a"/><rect x="230" y="112" width="80" height="30" class="b"/>
+<rect x="310" y="112" width="80" height="30" class="a"/><rect x="390" y="112" width="80" height="30" class="b"/>
+<rect x="470" y="112" width="80" height="30" class="a"/><rect x="550" y="112" width="80" height="30" class="b"/>
+<text x="652" y="127" text-anchor="middle" class="pct">100%</text>
+
+<!-- 512 x 3 -->
+<text x="140" y="175" text-anchor="end" class="lbl">512 threads × 3</text>
+<rect x="150" y="160" width="160" height="30" class="a"/><rect x="310" y="160" width="160" height="30" class="b"/>
+<rect x="470" y="160" width="160" height="30" class="a"/>
+<text x="652" y="175" text-anchor="middle" class="pct">100%</text>
+
+<!-- 1024 x 1 -->
+<text x="140" y="223" text-anchor="end" class="lbl">1024 threads × 1</text>
+<rect x="150" y="208" width="320" height="30" class="a"/>
+<rect x="470" y="208" width="160" height="30" fill="rgb(60,18,22)" stroke="rgb(255,110,110)" stroke-width="0.9" stroke-dasharray="4 3"/>
+<text x="550" y="223" text-anchor="middle" style="fill: rgb(255,110,110); font-size: 10.5px;">512 slots empty</text>
+<text x="652" y="223" text-anchor="middle" style="fill: rgb(255,110,110); font-size: 11px; font-weight: 600;">67%</text>
+
+<text x="340" y="262" text-anchor="middle" class="lbl">After one 1024-thread block only 512 slots remain, too few for a second.</text>
+<text x="340" y="279" text-anchor="middle" class="mut">On an A100 (2048 slots) two 1024-thread blocks fit. The right block size depends on the GPU.</text>
+</svg>

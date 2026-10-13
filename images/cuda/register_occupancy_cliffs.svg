@@ -1,0 +1,31 @@
+<svg width="100%" viewBox="0 0 680 300" xmlns="http://www.w3.org/2000/svg">
+<style>
+  text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; dominant-baseline: central; }
+  .title { fill: #e8f0ff; font-size: 14px; font-weight: 500; }
+  .mut { fill: #70829e; font-size: 10px; }
+  .lbl { fill: #c8d2e6; font-size: 11px; }
+</style>
+<rect width="100%" height="100%" fill="#0b0c14" rx="6"/>
+<text x="340" y="22" text-anchor="middle" class="title">Registers per thread vs resident warps (A100 SM, 256-thread blocks)</text>
+<line x1="100" y1="250" x2="620" y2="250" stroke="rgba(222,220,209,0.12)" stroke-width="0.5"/><text x="92" y="250" text-anchor="end" class="mut">0</text>
+<line x1="100" y1="202.5" x2="620" y2="202.5" stroke="rgba(222,220,209,0.12)" stroke-width="0.5"/><text x="92" y="202.5" text-anchor="end" class="mut">16</text>
+<line x1="100" y1="155" x2="620" y2="155" stroke="rgba(222,220,209,0.12)" stroke-width="0.5"/><text x="92" y="155" text-anchor="end" class="mut">32</text>
+<line x1="100" y1="107.5" x2="620" y2="107.5" stroke="rgba(222,220,209,0.12)" stroke-width="0.5"/><text x="92" y="107.5" text-anchor="end" class="mut">48</text>
+<line x1="100" y1="60" x2="620" y2="60" stroke="rgba(222,220,209,0.12)" stroke-width="0.5"/><text x="92" y="60" text-anchor="end" class="mut">64</text>
+<text x="100" y="264" text-anchor="middle" class="mut">16</text>
+<text x="169.33333333333331" y="264" text-anchor="middle" class="mut">32</text>
+<text x="238.66666666666666" y="264" text-anchor="middle" class="mut">48</text>
+<text x="308" y="264" text-anchor="middle" class="mut">64</text>
+<text x="377.3333333333333" y="264" text-anchor="middle" class="mut">80</text>
+<text x="446.66666666666663" y="264" text-anchor="middle" class="mut">96</text>
+<text x="516" y="264" text-anchor="middle" class="mut">112</text>
+<text x="585.3333333333333" y="264" text-anchor="middle" class="mut">128</text>
+<line x1="100" y1="250" x2="620" y2="250" stroke="rgba(222,220,209,0.45)"/><line x1="100" y1="56" x2="100" y2="250" stroke="rgba(222,220,209,0.45)"/>
+<text x="360" y="284" text-anchor="middle" class="lbl">registers per thread</text>
+<text x="40" y="153" text-anchor="middle" class="lbl" transform="rotate(-90 40 153)">resident warps per SM</text>
+<path d="M100.0 60.0 L169.3 60.0 L169.3 107.5 L204.0 107.5 L204.0 131.3 L238.7 131.3 L238.7 155.0 L308.0 155.0 L308.0 178.8 L377.3 178.8 L377.3 202.5 L585.3 202.5 L585.3 226.3 L620.0 226.3" fill="none" stroke="rgb(0,214,162)" stroke-width="2.4" stroke-linejoin="round"/>
+<circle cx="169.33333333333331" cy="60" r="4" fill="rgb(255,162,0)"/><circle cx="173.66666666666666" cy="107.5" r="4" fill="rgb(255,110,110)"/>
+<path d="M179.66666666666666 107.5 Q 260 107.5 290 83.75" stroke="rgba(255,162,0,0.7)" fill="none"/>
+<text x="296" y="80.78125" class="lbl" style="fill: rgb(255,162,0);">32 → 33 registers: 64 → 48 warps (100% → 75%)</text>
+<text x="464" y="187.65625" text-anchor="middle" class="mut">each step is a whole block lost</text>
+</svg>

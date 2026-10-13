@@ -1,0 +1,42 @@
+<svg width="100%" viewBox="0 0 680 300" xmlns="http://www.w3.org/2000/svg">
+<style>
+  text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; dominant-baseline: central; }
+  .title { fill: #e8f0ff; font-size: 14px; font-weight: 500; }
+  .mut { fill: #70829e; font-size: 10px; }
+  .row { stroke: rgba(222,220,209,0.12); stroke-width: 0.5; }
+  .tlp { fill: rgb(10,34,64); stroke: rgb(48,148,255); stroke-width: 0.9; }
+  .ilp0 { fill: rgb(5,54,42); stroke: rgb(0,214,162); stroke-width: 0.9; }
+  .ilp1 { fill: rgb(8,74,58); stroke: rgb(0,214,162); stroke-width: 0.9; }
+</style>
+<rect width="100%" height="100%" fill="#0b0c14" rx="6"/>
+<text x="340" y="22" text-anchor="middle" class="title">Two ways to keep eight loads in flight</text>
+
+<text x="170" y="48" text-anchor="middle" style="fill: rgb(48,148,255); font-size: 12px; font-weight: 600;">More warps (thread-level parallelism)</text>
+<text x="170" y="64" text-anchor="middle" class="mut">8 warps, 1 outstanding load each</text>
+<text x="510" y="48" text-anchor="middle" style="fill: rgb(0,214,162); font-size: 12px; font-weight: 600;">More work per warp (instruction-level)</text>
+<text x="510" y="64" text-anchor="middle" class="mut">2 warps, 4 independent loads each</text>
+<line x1="340" y1="40" x2="340" y2="252" stroke="rgba(222,220,209,0.2)" stroke-width="0.5" stroke-dasharray="4 4"/>
+
+<!-- Left: 8 warps -->
+<text x="30" y="92" class="mut">warp 0</text><line x1="80" y1="92" x2="320" y2="92" class="row"/><rect x="90" y="86" width="150" height="12" rx="2" class="tlp"/>
+<text x="30" y="114" class="mut">warp 1</text><line x1="80" y1="114" x2="320" y2="114" class="row"/><rect x="98" y="108" width="150" height="12" rx="2" class="tlp"/>
+<text x="30" y="136" class="mut">warp 2</text><line x1="80" y1="136" x2="320" y2="136" class="row"/><rect x="106" y="130" width="150" height="12" rx="2" class="tlp"/>
+<text x="30" y="158" class="mut">warp 3</text><line x1="80" y1="158" x2="320" y2="158" class="row"/><rect x="114" y="152" width="150" height="12" rx="2" class="tlp"/>
+<text x="30" y="180" class="mut">warp 4</text><line x1="80" y1="180" x2="320" y2="180" class="row"/><rect x="122" y="174" width="150" height="12" rx="2" class="tlp"/>
+<text x="30" y="202" class="mut">warp 5</text><line x1="80" y1="202" x2="320" y2="202" class="row"/><rect x="130" y="196" width="150" height="12" rx="2" class="tlp"/>
+<text x="30" y="224" class="mut">warp 6</text><line x1="80" y1="224" x2="320" y2="224" class="row"/><rect x="138" y="218" width="150" height="12" rx="2" class="tlp"/>
+<text x="30" y="246" class="mut">warp 7</text><line x1="80" y1="246" x2="320" y2="246" class="row"/><rect x="146" y="240" width="150" height="12" rx="2" class="tlp"/>
+
+<!-- Right: 2 warps x 4 loads -->
+<text x="360" y="92" class="mut">warp 0, load 1</text><line x1="440" y1="92" x2="660" y2="92" class="row"/><rect x="450" y="86" width="150" height="12" rx="2" class="ilp0"/>
+<text x="360" y="114" class="mut">warp 0, load 2</text><line x1="440" y1="114" x2="660" y2="114" class="row"/><rect x="454" y="108" width="150" height="12" rx="2" class="ilp0"/>
+<text x="360" y="136" class="mut">warp 0, load 3</text><line x1="440" y1="136" x2="660" y2="136" class="row"/><rect x="458" y="130" width="150" height="12" rx="2" class="ilp0"/>
+<text x="360" y="158" class="mut">warp 0, load 4</text><line x1="440" y1="158" x2="660" y2="158" class="row"/><rect x="462" y="152" width="150" height="12" rx="2" class="ilp0"/>
+<text x="360" y="180" class="mut">warp 1, load 1</text><line x1="440" y1="180" x2="660" y2="180" class="row"/><rect x="474" y="174" width="150" height="12" rx="2" class="ilp1"/>
+<text x="360" y="202" class="mut">warp 1, load 2</text><line x1="440" y1="202" x2="660" y2="202" class="row"/><rect x="478" y="196" width="150" height="12" rx="2" class="ilp1"/>
+<text x="360" y="224" class="mut">warp 1, load 3</text><line x1="440" y1="224" x2="660" y2="224" class="row"/><rect x="482" y="218" width="150" height="12" rx="2" class="ilp1"/>
+<text x="360" y="246" class="mut">warp 1, load 4</text><line x1="440" y1="246" x2="660" y2="246" class="row"/><rect x="486" y="240" width="150" height="12" rx="2" class="ilp1"/>
+
+<text x="340" y="272" text-anchor="middle" style="fill: #c8d2e6; font-size: 11px;">Bars are loads waiting on memory. Both sides have eight in flight, so both satisfy Little's law.</text>
+<text x="340" y="288" text-anchor="middle" class="mut">Occupancy (more warps) is one way to get there. It isn't the goal.</text>
+</svg>

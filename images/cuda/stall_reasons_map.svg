@@ -1,0 +1,20 @@
+<svg width="100%" viewBox="0 0 680 334" xmlns="http://www.w3.org/2000/svg">
+<style>
+  text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; dominant-baseline: central; }
+  .title { fill: #e8f0ff; font-size: 14px; font-weight: 500; }
+  .mut { fill: #70829e; font-size: 10px; }
+  .lbl { fill: #c8d2e6; font-size: 11px; }
+  .n { fill: #e8f0ff; font-size: 10px; }
+  .h { fill: #e8f0ff; font-size: 11.5px; font-weight: 600; }
+</style>
+<rect width="100%" height="100%" fill="#0b0c14" rx="6"/>
+<text x="340" y="22" text-anchor="middle" class="title">Reading warp stall reasons in Nsight Compute</text>
+<text x="30" y="52" text-anchor="start" class="mut">stall reason</text><text x="200" y="52" text-anchor="start" class="mut">the warp is waiting for</text><text x="430" y="52" text-anchor="start" class="mut">what to try</text>
+<rect x="20" y="66" width="640" height="34" rx="3" fill="#12131c" stroke="rgba(200,210,230,0.15)" stroke-width="1" /><rect x="20" y="66" width="5" height="34" fill="rgb(48,148,255)"/><text x="34" y="83" text-anchor="start" class="h">long scoreboard</text><text x="200" y="83" text-anchor="start" class="lbl">a load from global or local memory</text><text x="430" y="83" text-anchor="start" class="lbl" style="fill: rgb(48,148,255);">more work in flight; check for spills</text>
+<rect x="20" y="108" width="640" height="34" rx="3" fill="#12131c" stroke="rgba(200,210,230,0.15)" stroke-width="1" /><rect x="20" y="108" width="5" height="34" fill="rgb(80,210,230)"/><text x="34" y="125" text-anchor="start" class="h">short scoreboard</text><text x="200" y="125" text-anchor="start" class="lbl">shared memory or a special function</text><text x="430" y="125" text-anchor="start" class="lbl" style="fill: rgb(80,210,230);">fix bank conflicts; fewer transcendentals</text>
+<rect x="20" y="150" width="640" height="34" rx="3" fill="#12131c" stroke="rgba(200,210,230,0.15)" stroke-width="1" /><rect x="20" y="150" width="5" height="34" fill="rgb(170,130,255)"/><text x="34" y="167" text-anchor="start" class="h">MIO / LG throttle</text><text x="200" y="167" text-anchor="start" class="lbl">memory instruction queues are full</text><text x="430" y="167" text-anchor="start" class="lbl" style="fill: rgb(170,130,255);">vectorise: fewer, wider instructions</text>
+<rect x="20" y="192" width="640" height="34" rx="3" fill="#12131c" stroke="rgba(200,210,230,0.15)" stroke-width="1" /><rect x="20" y="192" width="5" height="34" fill="rgb(255,162,0)"/><text x="34" y="209" text-anchor="start" class="h">barrier</text><text x="200" y="209" text-anchor="start" class="lbl">slower warps at __syncthreads()</text><text x="430" y="209" text-anchor="start" class="lbl" style="fill: rgb(255,162,0);">balance the work inside the block</text>
+<rect x="20" y="234" width="640" height="34" rx="3" fill="#12131c" stroke="rgba(200,210,230,0.15)" stroke-width="1" /><rect x="20" y="234" width="5" height="34" fill="rgb(0,214,162)"/><text x="34" y="251" text-anchor="start" class="h">math pipe throttle</text><text x="200" y="251" text-anchor="start" class="lbl">a compute pipe that is saturated</text><text x="430" y="251" text-anchor="start" class="lbl" style="fill: rgb(0,214,162);">compute-bound: tensor cores, lower precision</text>
+<rect x="20" y="276" width="640" height="34" rx="3" fill="#12131c" stroke="rgba(200,210,230,0.15)" stroke-width="1" /><rect x="20" y="276" width="5" height="34" fill="#9aa6bd"/><text x="34" y="293" text-anchor="start" class="h">not selected</text><text x="200" y="293" text-anchor="start" class="lbl">nothing; another warp issued</text><text x="430" y="293" text-anchor="start" class="lbl" style="fill: #9aa6bd;">healthy: plenty of eligible work</text>
+<text x="340" y="324" text-anchor="middle" class="mut">Compile with -lineinfo and the source view pins every one of these to a line of your code.</text>
+</svg>

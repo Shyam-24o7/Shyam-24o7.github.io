@@ -1,0 +1,40 @@
+<svg width="100%" viewBox="0 0 680 262" xmlns="http://www.w3.org/2000/svg">
+<style>
+  text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; dominant-baseline: central; }
+  .title { fill: #e8f0ff; font-size: 14px; font-weight: 500; }
+  .mut { fill: #70829e; font-size: 10px; }
+  .lbl { fill: #c8d2e6; font-size: 11px; }
+  .op { fill: #161826; stroke: rgba(200,210,230,0.4); stroke-width: 0.9; }
+  .fence { fill: rgb(58,38,5); stroke: rgb(255,162,0); stroke-width: 1; }
+  .t { fill: #e8f0ff; font-size: 10.5px; }
+  .arrow { stroke-width: 1.2; fill: none; }
+</style>
+<rect width="100%" height="100%" fill="#0b0c14" rx="6"/>
+<text x="340" y="22" text-anchor="middle" class="title">Weak ordering: the flag can arrive before the data it guards</text>
+
+<text x="170" y="48" text-anchor="middle" style="fill: rgb(255,110,110); font-size: 12px; font-weight: 600;">no fence</text>
+<text x="80" y="68" text-anchor="middle" class="mut">thread in block A</text>
+<text x="260" y="68" text-anchor="middle" class="mut">thread in block B</text>
+<rect x="30" y="80" width="100" height="26" rx="3" class="op"/><text x="80" y="93" text-anchor="middle" class="t">data = 42</text>
+<rect x="30" y="116" width="100" height="26" rx="3" class="op"/><text x="80" y="129" text-anchor="middle" class="t">flag = 1</text>
+<rect x="200" y="116" width="120" height="26" rx="3" class="op"/><text x="260" y="129" text-anchor="middle" class="t">sees flag == 1</text>
+<rect x="200" y="152" width="120" height="26" rx="3" fill="rgb(60,18,22)" stroke="rgb(255,110,110)"/><text x="260" y="165" text-anchor="middle" class="t">reads data: 0 ?!</text>
+<path d="M130 129 L194 129" class="arrow" stroke="rgba(0,214,162,0.7)"/><polygon points="192,124 200,129 192,134" fill="rgba(0,214,162,0.7)"/>
+<path d="M130 93 Q 170 150 196 165" class="arrow" stroke="rgba(255,110,110,0.7)" stroke-dasharray="4 3"/>
+<text x="150" y="196" text-anchor="middle" style="fill: rgb(255,110,110); font-size: 10px;">the data write is still in flight</text>
+
+<line x1="340" y1="44" x2="340" y2="214" stroke="rgba(222,220,209,0.2)" stroke-width="0.5" stroke-dasharray="4 4"/>
+
+<text x="510" y="48" text-anchor="middle" style="fill: rgb(0,214,162); font-size: 12px; font-weight: 600;">with a fence (or release / acquire)</text>
+<text x="420" y="68" text-anchor="middle" class="mut">thread in block A</text>
+<text x="600" y="68" text-anchor="middle" class="mut">thread in block B</text>
+<rect x="370" y="80" width="100" height="26" rx="3" class="op"/><text x="420" y="93" text-anchor="middle" class="t">data = 42</text>
+<rect x="370" y="112" width="100" height="22" rx="3" class="fence"/><text x="420" y="123" text-anchor="middle" class="t">__threadfence()</text>
+<rect x="370" y="140" width="100" height="26" rx="3" class="op"/><text x="420" y="153" text-anchor="middle" class="t">flag = 1</text>
+<rect x="540" y="140" width="120" height="26" rx="3" class="op"/><text x="600" y="153" text-anchor="middle" class="t">sees flag == 1</text>
+<rect x="540" y="176" width="120" height="26" rx="3" fill="rgb(5,54,42)" stroke="rgb(0,214,162)"/><text x="600" y="189" text-anchor="middle" class="t">reads data: 42</text>
+<path d="M470 153 L534 153" class="arrow" stroke="rgba(0,214,162,0.7)"/><polygon points="532,148 540,153 532,158" fill="rgba(0,214,162,0.7)"/>
+
+<text x="340" y="236" text-anchor="middle" class="lbl">A fence orders this thread's writes: anyone who sees the flag also sees the data.</text>
+<text x="340" y="252" text-anchor="middle" class="mut">The reader must re-read the flag from memory each time (atomic or volatile load), not spin on a cached copy.</text>
+</svg>

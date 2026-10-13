@@ -1,0 +1,54 @@
+<svg width="100%" viewBox="0 0 680 240" xmlns="http://www.w3.org/2000/svg">
+<style>
+  text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; dominant-baseline: central; }
+  .title { fill: #e8f0ff; font-size: 14px; font-weight: 500; }
+  .mut { fill: #70829e; font-size: 10px; }
+  .lbl { fill: #c8d2e6; font-size: 11px; }
+  .lane { fill: rgb(10,34,64); stroke: rgb(48,148,255); stroke-width: 0.9; }
+  .n { fill: #e8f0ff; font-size: 9px; }
+  .g { stroke: rgba(0,214,162,0.6); stroke-width: 1; fill: none; }
+  .r { stroke: rgba(255,110,110,0.6); stroke-width: 1; fill: none; }
+</style>
+<rect width="100%" height="100%" fill="#0b0c14" rx="6"/>
+<text x="340" y="22" text-anchor="middle" class="title">Constant memory: one address is a broadcast, many addresses are a queue</text>
+
+<text x="170" y="48" text-anchor="middle" style="fill: rgb(0,214,162); font-size: 12px; font-weight: 600;">every lane reads coef[k]</text>
+<rect x="30" y="62" width="28" height="22" rx="2" class="lane"/><text x="44" y="73" text-anchor="middle" class="n">L0</text>
+<rect x="66" y="62" width="28" height="22" rx="2" class="lane"/><text x="80" y="73" text-anchor="middle" class="n">L1</text>
+<rect x="102" y="62" width="28" height="22" rx="2" class="lane"/><text x="116" y="73" text-anchor="middle" class="n">L2</text>
+<rect x="138" y="62" width="28" height="22" rx="2" class="lane"/><text x="152" y="73" text-anchor="middle" class="n">L3</text>
+<rect x="174" y="62" width="28" height="22" rx="2" class="lane"/><text x="188" y="73" text-anchor="middle" class="n">L4</text>
+<rect x="210" y="62" width="28" height="22" rx="2" class="lane"/><text x="224" y="73" text-anchor="middle" class="n">L5</text>
+<rect x="246" y="62" width="28" height="22" rx="2" class="lane"/><text x="260" y="73" text-anchor="middle" class="n">L6</text>
+<rect x="282" y="62" width="28" height="22" rx="2" class="lane"/><text x="296" y="73" text-anchor="middle" class="n">L7</text>
+<path d="M44 84 L170 140" class="g"/><path d="M80 84 L170 140" class="g"/><path d="M116 84 L170 140" class="g"/><path d="M152 84 L170 140" class="g"/>
+<path d="M188 84 L170 140" class="g"/><path d="M224 84 L170 140" class="g"/><path d="M260 84 L170 140" class="g"/><path d="M296 84 L170 140" class="g"/>
+<rect x="120" y="140" width="100" height="30" rx="3" fill="rgb(5,54,42)" stroke="rgb(0,214,162)"/>
+<text x="170" y="155" text-anchor="middle" style="fill: #e8f0ff; font-size: 10.5px;">coef[k]</text>
+<text x="170" y="188" text-anchor="middle" style="fill: rgb(0,214,162); font-size: 11px;">1 access, broadcast to all lanes</text>
+
+<line x1="340" y1="44" x2="340" y2="200" stroke="rgba(222,220,209,0.2)" stroke-width="0.5" stroke-dasharray="4 4"/>
+
+<text x="510" y="48" text-anchor="middle" style="fill: rgb(255,110,110); font-size: 12px; font-weight: 600;">each lane reads coef[lane]</text>
+<rect x="370" y="62" width="28" height="22" rx="2" class="lane"/><text x="384" y="73" text-anchor="middle" class="n">L0</text>
+<rect x="406" y="62" width="28" height="22" rx="2" class="lane"/><text x="420" y="73" text-anchor="middle" class="n">L1</text>
+<rect x="442" y="62" width="28" height="22" rx="2" class="lane"/><text x="456" y="73" text-anchor="middle" class="n">L2</text>
+<rect x="478" y="62" width="28" height="22" rx="2" class="lane"/><text x="492" y="73" text-anchor="middle" class="n">L3</text>
+<rect x="514" y="62" width="28" height="22" rx="2" class="lane"/><text x="528" y="73" text-anchor="middle" class="n">L4</text>
+<rect x="550" y="62" width="28" height="22" rx="2" class="lane"/><text x="564" y="73" text-anchor="middle" class="n">L5</text>
+<rect x="586" y="62" width="28" height="22" rx="2" class="lane"/><text x="600" y="73" text-anchor="middle" class="n">L6</text>
+<rect x="622" y="62" width="28" height="22" rx="2" class="lane"/><text x="636" y="73" text-anchor="middle" class="n">L7</text>
+<path d="M384 84 L384 140" class="r"/><path d="M420 84 L420 140" class="r"/><path d="M456 84 L456 140" class="r"/><path d="M492 84 L492 140" class="r"/>
+<path d="M528 84 L528 140" class="r"/><path d="M564 84 L564 140" class="r"/><path d="M600 84 L600 140" class="r"/><path d="M636 84 L636 140" class="r"/>
+<rect x="370" y="140" width="28" height="30" rx="2" fill="rgb(60,18,22)" stroke="rgb(255,110,110)"/><text x="384" y="155" text-anchor="middle" class="n">1st</text>
+<rect x="406" y="140" width="28" height="30" rx="2" fill="rgb(60,18,22)" stroke="rgb(255,110,110)"/><text x="420" y="155" text-anchor="middle" class="n">2nd</text>
+<rect x="442" y="140" width="28" height="30" rx="2" fill="rgb(60,18,22)" stroke="rgb(255,110,110)"/><text x="456" y="155" text-anchor="middle" class="n">3rd</text>
+<rect x="478" y="140" width="28" height="30" rx="2" fill="rgb(60,18,22)" stroke="rgb(255,110,110)"/><text x="492" y="155" text-anchor="middle" class="n">4th</text>
+<rect x="514" y="140" width="28" height="30" rx="2" fill="rgb(60,18,22)" stroke="rgb(255,110,110)"/><text x="528" y="155" text-anchor="middle" class="n">5th</text>
+<rect x="550" y="140" width="28" height="30" rx="2" fill="rgb(60,18,22)" stroke="rgb(255,110,110)"/><text x="564" y="155" text-anchor="middle" class="n">6th</text>
+<rect x="586" y="140" width="28" height="30" rx="2" fill="rgb(60,18,22)" stroke="rgb(255,110,110)"/><text x="600" y="155" text-anchor="middle" class="n">7th</text>
+<rect x="622" y="140" width="28" height="30" rx="2" fill="rgb(60,18,22)" stroke="rgb(255,110,110)"/><text x="636" y="155" text-anchor="middle" class="n">8th</text>
+<text x="510" y="188" text-anchor="middle" style="fill: rgb(255,110,110); font-size: 11px;">8 distinct addresses: 8 accesses in turn</text>
+
+<text x="340" y="222" text-anchor="middle" class="mut">Use constant memory for values that are the same across a warp: coefficients, scales, loop bounds.</text>
+</svg>

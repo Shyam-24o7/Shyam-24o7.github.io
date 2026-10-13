@@ -1,0 +1,53 @@
+<svg width="100%" viewBox="0 0 680 300" xmlns="http://www.w3.org/2000/svg">
+<style>
+  text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; dominant-baseline: central; }
+  .title { fill: #e8f0ff; font-size: 14px; font-weight: 500; }
+  .lbl { fill: #e8f0ff; font-size: 11.5px; font-weight: 500; }
+  .mut { fill: #70829e; font-size: 10px; }
+  .s { fill: rgb(60,18,22); stroke: rgb(255,110,110); stroke-width: 0.9; }
+  .e { fill: rgb(10,34,64); stroke: rgb(48,148,255); stroke-width: 0.9; }
+  .m { fill: rgb(5,54,42); stroke: rgb(0,214,162); stroke-width: 0.9; }
+  .bits { fill: #e8f0ff; font-size: 10px; }
+  .max { fill: #c8d2e6; font-size: 10.5px; }
+</style>
+<rect width="100%" height="100%" fill="#0b0c14" rx="6"/>
+<text x="340" y="20" text-anchor="middle" class="title">Floating-point formats: the same split between range and precision</text>
+
+<rect x="150" y="38" width="10" height="10" class="s"/><text x="166" y="43" class="mut">sign</text>
+<rect x="206" y="38" width="10" height="10" class="e"/><text x="222" y="43" class="mut">exponent bits: range</text>
+<rect x="334" y="38" width="10" height="10" class="m"/><text x="350" y="43" class="mut">mantissa bits: precision</text>
+<text x="610" y="43" class="mut">largest value</text>
+
+<text x="140" y="70" text-anchor="end" class="lbl">FP32</text>
+<rect x="150" y="58" width="14" height="24" class="s"/><rect x="164" y="58" width="112" height="24" class="e"/><rect x="276" y="58" width="322" height="24" class="m"/>
+<text x="220" y="70" text-anchor="middle" class="bits">8</text><text x="437" y="70" text-anchor="middle" class="bits">23</text>
+<text x="610" y="70" class="max">3.4×10³⁸</text>
+
+<text x="140" y="104" text-anchor="end" class="lbl">TF32</text>
+<rect x="150" y="92" width="14" height="24" class="s"/><rect x="164" y="92" width="112" height="24" class="e"/><rect x="276" y="92" width="140" height="24" class="m"/>
+<text x="220" y="104" text-anchor="middle" class="bits">8</text><text x="346" y="104" text-anchor="middle" class="bits">10</text>
+<text x="610" y="104" class="max">3.4×10³⁸</text>
+
+<text x="140" y="138" text-anchor="end" class="lbl">BF16</text>
+<rect x="150" y="126" width="14" height="24" class="s"/><rect x="164" y="126" width="112" height="24" class="e"/><rect x="276" y="126" width="98" height="24" class="m"/>
+<text x="220" y="138" text-anchor="middle" class="bits">8</text><text x="325" y="138" text-anchor="middle" class="bits">7</text>
+<text x="610" y="138" class="max">3.4×10³⁸</text>
+
+<text x="140" y="172" text-anchor="end" class="lbl">FP16</text>
+<rect x="150" y="160" width="14" height="24" class="s"/><rect x="164" y="160" width="70" height="24" class="e"/><rect x="234" y="160" width="140" height="24" class="m"/>
+<text x="199" y="172" text-anchor="middle" class="bits">5</text><text x="304" y="172" text-anchor="middle" class="bits">10</text>
+<text x="610" y="172" class="max">65,504</text>
+
+<text x="140" y="206" text-anchor="end" class="lbl">FP8 E4M3</text>
+<rect x="150" y="194" width="14" height="24" class="s"/><rect x="164" y="194" width="56" height="24" class="e"/><rect x="220" y="194" width="42" height="24" class="m"/>
+<text x="192" y="206" text-anchor="middle" class="bits">4</text><text x="241" y="206" text-anchor="middle" class="bits">3</text>
+<text x="610" y="206" class="max">448</text>
+
+<text x="140" y="240" text-anchor="end" class="lbl">FP8 E5M2</text>
+<rect x="150" y="228" width="14" height="24" class="s"/><rect x="164" y="228" width="70" height="24" class="e"/><rect x="234" y="228" width="28" height="24" class="m"/>
+<text x="199" y="240" text-anchor="middle" class="bits">5</text><text x="248" y="240" text-anchor="middle" class="bits">2</text>
+<text x="610" y="240" class="max">57,344</text>
+
+<text x="340" y="270" text-anchor="middle" style="fill: #c8d2e6; font-size: 11px;">BF16 keeps FP32's range and pays in precision. FP16 keeps more precision and overflows past 65,504.</text>
+<text x="340" y="287" text-anchor="middle" class="mut">Tensor cores normally accumulate the products in FP32, whatever the input format.</text>
+</svg>

@@ -1,0 +1,66 @@
+<svg width="100%" viewBox="0 0 680 250" xmlns="http://www.w3.org/2000/svg">
+<style>
+  text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; dominant-baseline: central; }
+  .title { fill: #e8f0ff; font-size: 14px; font-weight: 500; }
+  .lbl { fill: #e8f0ff; font-size: 11px; }
+  .sub { fill: #70829e; font-size: 9.5px; }
+  .mut { fill: #70829e; font-size: 10.5px; }
+  .arrow { stroke: rgba(200,210,230,0.55); stroke-width: 1.2; fill: none; }
+  .head { fill: rgba(200,210,230,0.55); }
+  .host { fill: rgb(40,22,64); stroke: rgb(170,130,255); stroke-width: 1; }
+  .dev { fill: rgb(5,54,42); stroke: rgb(0,214,162); stroke-width: 1; }
+  .src { fill: rgb(10,34,64); stroke: rgb(48,148,255); stroke-width: 1; }
+  .exe { fill: rgb(58,38,5); stroke: rgb(255,162,0); stroke-width: 1; }
+</style>
+<rect width="100%" height="100%" fill="#0b0c14" rx="6"/>
+<text x="340" y="22" text-anchor="middle" class="title">What nvcc builds from one .cu file</text>
+
+<rect x="20" y="95" width="88" height="44" rx="5" class="src"/>
+<text x="64" y="112" text-anchor="middle" class="lbl">file.cu</text>
+<text x="64" y="127" text-anchor="middle" class="sub">host + device</text>
+
+<!-- split arrows -->
+<path d="M108 108 L118 108 L118 70 L124 70" class="arrow"/><polygon points="122,65 130,70 122,75" class="head"/>
+<path d="M108 126 L118 126 L118 160 L124 160" class="arrow"/><polygon points="122,155 130,160 122,165" class="head"/>
+
+<!-- host row -->
+<rect x="130" y="50" width="100" height="40" rx="5" class="host"/>
+<text x="180" y="64" text-anchor="middle" class="lbl">host code</text>
+<text x="180" y="78" text-anchor="middle" class="sub">main, cudaMalloc</text>
+<line x1="230" y1="70" x2="244" y2="70" class="arrow"/><polygon points="242,65 250,70 242,75" class="head"/>
+<rect x="250" y="50" width="170" height="40" rx="5" class="host"/>
+<text x="335" y="64" text-anchor="middle" class="lbl">host compiler</text>
+<text x="335" y="78" text-anchor="middle" class="sub">MSVC, gcc or clang</text>
+<line x1="420" y1="70" x2="434" y2="70" class="arrow"/><polygon points="432,65 440,70 432,75" class="head"/>
+<rect x="440" y="50" width="92" height="40" rx="5" class="host"/>
+<text x="486" y="64" text-anchor="middle" class="lbl">CPU code</text>
+<text x="486" y="78" text-anchor="middle" class="sub">x86 / ARM</text>
+
+<!-- device row -->
+<rect x="130" y="140" width="100" height="40" rx="5" class="dev"/>
+<text x="180" y="154" text-anchor="middle" class="lbl">device code</text>
+<text x="180" y="168" text-anchor="middle" class="sub">__global__ kernels</text>
+<line x1="230" y1="160" x2="244" y2="160" class="arrow"/><polygon points="242,155 250,160 242,165" class="head"/>
+<rect x="250" y="140" width="80" height="40" rx="5" class="dev"/>
+<text x="290" y="154" text-anchor="middle" class="lbl">PTX</text>
+<text x="290" y="168" text-anchor="middle" class="sub">virtual ISA</text>
+<line x1="330" y1="160" x2="344" y2="160" class="arrow"/><polygon points="342,155 350,160 342,165" class="head"/>
+<rect x="350" y="140" width="70" height="40" rx="5" class="dev"/>
+<text x="385" y="160" text-anchor="middle" class="lbl">ptxas</text>
+<line x1="420" y1="160" x2="434" y2="160" class="arrow"/><polygon points="432,155 440,160 432,165" class="head"/>
+<rect x="440" y="140" width="92" height="40" rx="5" class="dev"/>
+<text x="486" y="154" text-anchor="middle" class="lbl">SASS</text>
+<text x="486" y="168" text-anchor="middle" class="sub">real machine code</text>
+
+<!-- executable -->
+<rect x="560" y="50" width="100" height="130" rx="5" class="exe"/>
+<text x="610" y="96" text-anchor="middle" class="lbl">executable</text>
+<text x="610" y="114" text-anchor="middle" class="sub">fatbinary inside:</text>
+<text x="610" y="128" text-anchor="middle" class="sub">SASS + PTX</text>
+<line x1="532" y1="70" x2="554" y2="70" class="arrow"/><polygon points="552,65 560,70 552,75" class="head"/>
+<line x1="532" y1="160" x2="554" y2="160" class="arrow"/><polygon points="552,155 560,160 552,165" class="head"/>
+<path d="M290 180 L290 196 L610 196 L610 186" class="arrow" stroke-dasharray="4 3"/><polygon points="605,188 610,180 615,188" class="head"/>
+<text x="450" y="206" text-anchor="middle" class="sub">PTX is embedded too, so the driver can JIT it for future GPUs</text>
+
+<text x="340" y="232" text-anchor="middle" class="mut">-arch=sm_XX picks the generation. Compute capability decides which instructions exist at all.</text>
+</svg>

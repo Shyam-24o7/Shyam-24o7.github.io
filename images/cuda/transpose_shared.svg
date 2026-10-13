@@ -1,0 +1,43 @@
+<svg width="100%" viewBox="0 0 680 262" xmlns="http://www.w3.org/2000/svg">
+<style>
+  text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; dominant-baseline: central; }
+  .title { fill: #e8f0ff; font-size: 14px; font-weight: 500; }
+  .mut { fill: #70829e; font-size: 10px; }
+  .lbl { fill: #c8d2e6; font-size: 11px; }
+  .mat { fill: #12131c; stroke: rgba(200,210,230,0.4); stroke-width: 1; }
+  .arrow { stroke: rgba(200,210,230,0.55); stroke-width: 1.2; fill: none; }
+  .head { fill: rgba(200,210,230,0.55); }
+</style>
+<rect width="100%" height="100%" fill="#0b0c14" rx="6"/>
+<text x="340" y="22" text-anchor="middle" class="title">Transpose through shared memory: both global accesses stay coalesced</text>
+
+<text x="110" y="48" text-anchor="middle" class="lbl">input (global)</text>
+<rect x="40" y="60" width="140" height="120" class="mat"/>
+<rect x="40" y="80" width="140" height="20" fill="rgb(10,34,64)" stroke="rgb(48,148,255)" stroke-width="1.2"/>
+<text x="110" y="90" text-anchor="middle" style="fill: rgb(48,148,255); font-size: 10px;">read a row →</text>
+
+<text x="340" y="48" text-anchor="middle" class="lbl">tile (shared memory)</text>
+<rect x="270" y="60" width="140" height="120" fill="rgba(48,148,255,0.06)" stroke="rgba(48,148,255,0.5)" stroke-width="1"/>
+<rect x="270" y="80" width="140" height="20" fill="rgba(48,148,255,0.25)"/>
+<rect x="300" y="60" width="20" height="120" fill="rgb(5,54,42)" stroke="rgb(0,214,162)" stroke-width="1.2" opacity="0.9"/>
+<text x="310" y="150" text-anchor="middle" style="fill: rgb(0,214,162); font-size: 10px;">↓</text>
+<text x="368" y="140" text-anchor="middle" style="fill: rgb(0,214,162); font-size: 10px;">read a</text>
+<text x="368" y="154" text-anchor="middle" style="fill: rgb(0,214,162); font-size: 10px;">column</text>
+
+<text x="570" y="48" text-anchor="middle" class="lbl">output (global)</text>
+<rect x="500" y="60" width="140" height="120" class="mat"/>
+<rect x="500" y="120" width="140" height="20" fill="rgb(5,54,42)" stroke="rgb(0,214,162)" stroke-width="1.2"/>
+<text x="570" y="130" text-anchor="middle" style="fill: rgb(0,214,162); font-size: 10px;">write a row →</text>
+
+<line x1="180" y1="90" x2="262" y2="90" class="arrow"/><polygon points="260,85 268,90 260,95" class="head"/>
+<path d="M410 130 L492 130" class="arrow"/><polygon points="490,125 498,130 490,135" class="head"/>
+
+<text x="110" y="198" text-anchor="middle" class="mut">1. each warp loads a row:</text>
+<text x="110" y="212" text-anchor="middle" class="mut">coalesced</text>
+<text x="340" y="198" text-anchor="middle" class="mut">2. __syncthreads(), then read</text>
+<text x="340" y="212" text-anchor="middle" class="mut">columns: strided, but on chip</text>
+<text x="570" y="198" text-anchor="middle" class="mut">3. write each column out as a</text>
+<text x="570" y="212" text-anchor="middle" class="mut">row of the result: coalesced</text>
+
+<text x="340" y="244" text-anchor="middle" class="lbl">The strided access moved into shared memory, which is exactly where bank conflicts live.</text>
+</svg>

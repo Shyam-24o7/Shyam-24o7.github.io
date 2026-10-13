@@ -1,0 +1,51 @@
+<svg width="100%" viewBox="0 0 680 292" xmlns="http://www.w3.org/2000/svg">
+<style>
+  text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; dominant-baseline: central; }
+  .title { fill: #e8f0ff; font-size: 14px; font-weight: 500; }
+  .h { fill: #e8f0ff; font-size: 12px; font-weight: 600; }
+  .lbl { fill: #c8d2e6; font-size: 11px; }
+  .mut { fill: #70829e; font-size: 10.5px; }
+  .arrow { stroke: rgba(200,210,230,0.55); stroke-width: 1.2; fill: none; }
+  .head { fill: rgba(200,210,230,0.55); }
+</style>
+<rect width="100%" height="100%" fill="#0b0c14" rx="6"/>
+<text x="340" y="22" text-anchor="middle" class="title">From a number to a diagnosis</text>
+
+<rect x="130" y="40" width="420" height="40" rx="5" fill="rgb(10,34,64)" stroke="rgb(48,148,255)" stroke-width="1"/>
+<text x="340" y="53" text-anchor="middle" class="h">1. Measure honestly</text>
+<text x="340" y="69" text-anchor="middle" class="mut">warm up, CUDA events, a deliberate cache state, median of many runs</text>
+
+<line x1="340" y1="80" x2="340" y2="94" class="arrow"/>
+<polygon points="335,92 340,100 345,92" class="head"/>
+
+<rect x="130" y="100" width="420" height="40" rx="5" fill="rgb(10,34,64)" stroke="rgb(48,148,255)" stroke-width="1"/>
+<text x="340" y="113" text-anchor="middle" class="h">2. Convert to % of peak, read Speed of Light</text>
+<text x="340" y="129" text-anchor="middle" class="mut">memory throughput % vs compute (SM) throughput %</text>
+
+<path d="M340 140 L340 152 L120 152 L120 166" class="arrow"/>
+<polygon points="115,164 120,172 125,164" class="head"/>
+<line x1="340" y1="140" x2="340" y2="166" class="arrow"/>
+<polygon points="335,164 340,172 345,164" class="head"/>
+<path d="M340 152 L560 152 L560 166" class="arrow"/>
+<polygon points="555,164 560,172 565,164" class="head"/>
+
+<rect x="20" y="172" width="200" height="78" rx="5" fill="rgb(5,54,42)" stroke="rgb(0,214,162)" stroke-width="1"/>
+<text x="120" y="188" text-anchor="middle" style="fill: rgb(0,214,162); font-size: 12px; font-weight: 600;">Memory high</text>
+<text x="120" y="205" text-anchor="middle" class="lbl">memory-bound</text>
+<text x="120" y="222" text-anchor="middle" class="mut">move fewer bytes:</text>
+<text x="120" y="237" text-anchor="middle" class="mut">coalescing, reuse, fusion, smaller types</text>
+
+<rect x="240" y="172" width="200" height="78" rx="5" fill="rgb(58,38,5)" stroke="rgb(255,162,0)" stroke-width="1"/>
+<text x="340" y="188" text-anchor="middle" style="fill: rgb(255,162,0); font-size: 12px; font-weight: 600;">Both low</text>
+<text x="340" y="205" text-anchor="middle" class="lbl">latency-bound</text>
+<text x="340" y="222" text-anchor="middle" class="mut">more work in flight:</text>
+<text x="340" y="237" text-anchor="middle" class="mut">more warps or more ILP (Little's law)</text>
+
+<rect x="460" y="172" width="200" height="78" rx="5" fill="rgb(40,22,64)" stroke="rgb(170,130,255)" stroke-width="1"/>
+<text x="560" y="188" text-anchor="middle" style="fill: rgb(170,130,255); font-size: 12px; font-weight: 600;">Compute high</text>
+<text x="560" y="205" text-anchor="middle" class="lbl">compute-bound</text>
+<text x="560" y="222" text-anchor="middle" class="mut">cheaper math:</text>
+<text x="560" y="237" text-anchor="middle" class="mut">tensor cores, lower precision, fewer ops</text>
+
+<text x="340" y="274" text-anchor="middle" class="mut">Then place it on the roofline: how far is it from the ceiling its arithmetic intensity allows?</text>
+</svg>

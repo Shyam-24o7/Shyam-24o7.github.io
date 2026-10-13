@@ -1,0 +1,55 @@
+<svg width="100%" viewBox="0 0 680 292" xmlns="http://www.w3.org/2000/svg">
+<style>
+  text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; dominant-baseline: central; }
+  .title { fill: #e8f0ff; font-size: 14px; font-weight: 500; }
+  .lbl { fill: #e8f0ff; font-size: 11px; }
+  .big { fill: #e8f0ff; font-size: 13px; font-weight: 600; }
+  .sub { fill: #70829e; font-size: 9.5px; }
+  .mut { fill: #70829e; font-size: 10.5px; }
+  .mat { fill: #12131c; stroke: rgba(200,210,230,0.4); stroke-width: 1; }
+  .step { fill: #161826; stroke: rgba(200,210,230,0.35); stroke-width: 0.9; }
+  .arrow { stroke: rgba(200,210,230,0.55); stroke-width: 1.2; fill: none; }
+  .head { fill: rgba(200,210,230,0.55); }
+</style>
+<rect width="100%" height="100%" fill="#0b0c14" rx="6"/>
+<text x="340" y="22" text-anchor="middle" class="title">FlashAttention: stream K and V past each Q block, never store the scores</text>
+
+<text x="95" y="48" text-anchor="middle" class="mut">HBM</text>
+<text x="28" y="85" text-anchor="middle" class="big">Q</text>
+<rect x="40" y="60" width="110" height="50" class="mat"/><rect x="40" y="72" width="110" height="14" fill="rgb(5,54,42)" stroke="rgb(0,214,162)" stroke-width="1.2"/>
+<text x="28" y="147" text-anchor="middle" class="big">K</text>
+<rect x="40" y="122" width="110" height="50" class="mat"/><rect x="40" y="140" width="110" height="14" fill="rgb(10,34,64)" stroke="rgb(48,148,255)" stroke-width="1.2"/>
+<text x="28" y="209" text-anchor="middle" class="big">V</text>
+<rect x="40" y="184" width="110" height="50" class="mat"/><rect x="40" y="202" width="110" height="14" fill="rgb(58,38,5)" stroke="rgb(255,162,0)" stroke-width="1.2"/>
+<text x="95" y="248" text-anchor="middle" class="sub">highlighted: block i of Q, tile j of K and V</text>
+
+<rect x="210" y="52" width="270" height="190" rx="8" fill="rgba(48,148,255,0.05)" stroke="rgba(48,148,255,0.45)" stroke-width="1"/>
+<text x="345" y="66" text-anchor="middle" class="mut">on chip: shared memory and registers</text>
+<rect x="228" y="80" width="234" height="34" rx="4" class="step"/>
+<text x="345" y="92" text-anchor="middle" class="lbl">scores = Q block × K tile (transposed)</text>
+<text x="345" y="106" text-anchor="middle" class="sub">a small tile of the attention matrix</text>
+<rect x="228" y="124" width="234" height="34" rx="4" class="step"/>
+<text x="345" y="136" text-anchor="middle" class="lbl">online softmax: update row max m, row sum l</text>
+<text x="345" y="150" text-anchor="middle" class="sub">old partial results rescaled by exp(m_old − m_new)</text>
+<rect x="228" y="168" width="234" height="34" rx="4" class="step"/>
+<text x="345" y="180" text-anchor="middle" class="lbl">O ← rescaled O + probabilities × V tile</text>
+<text x="345" y="194" text-anchor="middle" class="sub">output accumulates in registers</text>
+<text x="345" y="224" text-anchor="middle" style="fill: rgb(48,148,255); font-size: 10.5px;">repeat for every K, V tile j</text>
+
+<path d="M150 79 L222 92" class="arrow"/><polygon points="219,87 228,93 218,97" class="head"/>
+<path d="M150 147 L222 102" class="arrow"/><polygon points="218,98 228,99 222,106" class="head"/>
+<path d="M150 209 L222 186" class="arrow"/><polygon points="219,181 228,184 222,190" class="head"/>
+
+<rect x="510" y="62" width="150" height="96" rx="4" fill="rgb(30,12,15)" stroke="rgb(255,110,110)" stroke-width="1" stroke-dasharray="5 4"/>
+<line x1="520" y1="72" x2="650" y2="148" stroke="rgba(255,110,110,0.35)" stroke-width="1"/>
+<line x1="650" y1="72" x2="520" y2="148" stroke="rgba(255,110,110,0.35)" stroke-width="1"/>
+<text x="585" y="100" text-anchor="middle" style="fill: rgb(255,110,110); font-size: 12px; font-weight: 600;">N × N scores</text>
+<text x="585" y="118" text-anchor="middle" style="fill: rgb(255,110,110); font-size: 10.5px;">never written to HBM</text>
+
+<rect x="510" y="176" width="150" height="44" rx="4" fill="rgb(5,54,42)" stroke="rgb(0,214,162)" stroke-width="1"/>
+<text x="585" y="191" text-anchor="middle" class="lbl">O block i</text>
+<text x="585" y="207" text-anchor="middle" class="sub">normalised, written once</text>
+<path d="M462 198 L504 198" class="arrow"/><polygon points="502,193 510,198 502,203" class="head"/>
+
+<text x="340" y="272" text-anchor="middle" class="mut">K and V are read once per Q block. The scores only ever exist one tile at a time, on chip.</text>
+</svg>

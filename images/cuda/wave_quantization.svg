@@ -1,0 +1,73 @@
+<svg width="100%" viewBox="0 0 680 262" xmlns="http://www.w3.org/2000/svg">
+<style>
+  text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; dominant-baseline: central; }
+  .title { fill: #e8f0ff; font-size: 14px; font-weight: 500; }
+  .lbl { fill: #c8d2e6; font-size: 11px; }
+  .mut { fill: #70829e; font-size: 10px; }
+  .sm { fill: #70829e; font-size: 9px; }
+  .busy { fill: rgb(5,54,42); stroke: rgb(0,214,162); stroke-width: 0.9; }
+  .idle { fill: rgb(30,12,15); stroke: rgb(255,110,110); stroke-width: 0.9; stroke-dasharray: 3 3; }
+  .bn { fill: rgb(112,244,200); font-size: 9px; }
+</style>
+<rect width="100%" height="100%" fill="#0b0c14" rx="6"/>
+<text x="340" y="22" text-anchor="middle" class="title">Wave quantization on a GPU with 8 SMs (one block per SM at a time)</text>
+
+<text x="195" y="48" text-anchor="middle" style="fill: rgb(0,214,162); font-size: 12px; font-weight: 600;">16 blocks: 2 full waves</text>
+<text x="535" y="48" text-anchor="middle" style="fill: rgb(255,110,110); font-size: 12px; font-weight: 600;">9 blocks: still 2 waves</text>
+
+<!-- SM headers -->
+<text x="83" y="70" text-anchor="middle" class="sm">SM0</text><text x="115" y="70" text-anchor="middle" class="sm">SM1</text>
+<text x="147" y="70" text-anchor="middle" class="sm">SM2</text><text x="179" y="70" text-anchor="middle" class="sm">SM3</text>
+<text x="211" y="70" text-anchor="middle" class="sm">SM4</text><text x="243" y="70" text-anchor="middle" class="sm">SM5</text>
+<text x="275" y="70" text-anchor="middle" class="sm">SM6</text><text x="307" y="70" text-anchor="middle" class="sm">SM7</text>
+<text x="423" y="70" text-anchor="middle" class="sm">SM0</text><text x="455" y="70" text-anchor="middle" class="sm">SM1</text>
+<text x="487" y="70" text-anchor="middle" class="sm">SM2</text><text x="519" y="70" text-anchor="middle" class="sm">SM3</text>
+<text x="551" y="70" text-anchor="middle" class="sm">SM4</text><text x="583" y="70" text-anchor="middle" class="sm">SM5</text>
+<text x="615" y="70" text-anchor="middle" class="sm">SM6</text><text x="647" y="70" text-anchor="middle" class="sm">SM7</text>
+
+<!-- Left grid -->
+<text x="62" y="100" text-anchor="end" class="mut">wave 1</text>
+<text x="62" y="144" text-anchor="end" class="mut">wave 2</text>
+<rect x="70" y="82" width="26" height="36" rx="3" class="busy"/><text x="83" y="100" text-anchor="middle" class="bn">B0</text>
+<rect x="102" y="82" width="26" height="36" rx="3" class="busy"/><text x="115" y="100" text-anchor="middle" class="bn">B1</text>
+<rect x="134" y="82" width="26" height="36" rx="3" class="busy"/><text x="147" y="100" text-anchor="middle" class="bn">B2</text>
+<rect x="166" y="82" width="26" height="36" rx="3" class="busy"/><text x="179" y="100" text-anchor="middle" class="bn">B3</text>
+<rect x="198" y="82" width="26" height="36" rx="3" class="busy"/><text x="211" y="100" text-anchor="middle" class="bn">B4</text>
+<rect x="230" y="82" width="26" height="36" rx="3" class="busy"/><text x="243" y="100" text-anchor="middle" class="bn">B5</text>
+<rect x="262" y="82" width="26" height="36" rx="3" class="busy"/><text x="275" y="100" text-anchor="middle" class="bn">B6</text>
+<rect x="294" y="82" width="26" height="36" rx="3" class="busy"/><text x="307" y="100" text-anchor="middle" class="bn">B7</text>
+<rect x="70" y="126" width="26" height="36" rx="3" class="busy"/><text x="83" y="144" text-anchor="middle" class="bn">B8</text>
+<rect x="102" y="126" width="26" height="36" rx="3" class="busy"/><text x="115" y="144" text-anchor="middle" class="bn">B9</text>
+<rect x="134" y="126" width="26" height="36" rx="3" class="busy"/><text x="147" y="144" text-anchor="middle" class="bn">B10</text>
+<rect x="166" y="126" width="26" height="36" rx="3" class="busy"/><text x="179" y="144" text-anchor="middle" class="bn">B11</text>
+<rect x="198" y="126" width="26" height="36" rx="3" class="busy"/><text x="211" y="144" text-anchor="middle" class="bn">B12</text>
+<rect x="230" y="126" width="26" height="36" rx="3" class="busy"/><text x="243" y="144" text-anchor="middle" class="bn">B13</text>
+<rect x="262" y="126" width="26" height="36" rx="3" class="busy"/><text x="275" y="144" text-anchor="middle" class="bn">B14</text>
+<rect x="294" y="126" width="26" height="36" rx="3" class="busy"/><text x="307" y="144" text-anchor="middle" class="bn">B15</text>
+
+<!-- Right grid -->
+<text x="402" y="100" text-anchor="end" class="mut">wave 1</text>
+<text x="402" y="144" text-anchor="end" class="mut">wave 2</text>
+<rect x="410" y="82" width="26" height="36" rx="3" class="busy"/><text x="423" y="100" text-anchor="middle" class="bn">B0</text>
+<rect x="442" y="82" width="26" height="36" rx="3" class="busy"/><text x="455" y="100" text-anchor="middle" class="bn">B1</text>
+<rect x="474" y="82" width="26" height="36" rx="3" class="busy"/><text x="487" y="100" text-anchor="middle" class="bn">B2</text>
+<rect x="506" y="82" width="26" height="36" rx="3" class="busy"/><text x="519" y="100" text-anchor="middle" class="bn">B3</text>
+<rect x="538" y="82" width="26" height="36" rx="3" class="busy"/><text x="551" y="100" text-anchor="middle" class="bn">B4</text>
+<rect x="570" y="82" width="26" height="36" rx="3" class="busy"/><text x="583" y="100" text-anchor="middle" class="bn">B5</text>
+<rect x="602" y="82" width="26" height="36" rx="3" class="busy"/><text x="615" y="100" text-anchor="middle" class="bn">B6</text>
+<rect x="634" y="82" width="26" height="36" rx="3" class="busy"/><text x="647" y="100" text-anchor="middle" class="bn">B7</text>
+<rect x="410" y="126" width="26" height="36" rx="3" class="busy"/><text x="423" y="144" text-anchor="middle" class="bn">B8</text>
+<rect x="442" y="126" width="26" height="36" rx="3" class="idle"/>
+<rect x="474" y="126" width="26" height="36" rx="3" class="idle"/>
+<rect x="506" y="126" width="26" height="36" rx="3" class="idle"/>
+<rect x="538" y="126" width="26" height="36" rx="3" class="idle"/>
+<rect x="570" y="126" width="26" height="36" rx="3" class="idle"/>
+<rect x="602" y="126" width="26" height="36" rx="3" class="idle"/>
+<rect x="634" y="126" width="26" height="36" rx="3" class="idle"/>
+
+<text x="195" y="182" text-anchor="middle" class="mut">every SM busy in both waves</text>
+<text x="535" y="182" text-anchor="middle" style="fill: rgb(255,110,110); font-size: 10px;">wave 2: one SM busy, seven idle</text>
+
+<text x="340" y="216" text-anchor="middle" class="lbl">Both take two waves of time, so 9 blocks cost as much as 16. The GPU is only 56% busy.</text>
+<text x="340" y="236" text-anchor="middle" class="mut">It matters when blocks are few and heavy (GEMM, attention). Fixes: tile sizes chosen for the SM count, Stream-K.</text>
+</svg>

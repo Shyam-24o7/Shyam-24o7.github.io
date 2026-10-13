@@ -1,0 +1,56 @@
+<svg width="100%" viewBox="0 0 680 222" xmlns="http://www.w3.org/2000/svg">
+<style>
+  text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; dominant-baseline: central; }
+  .title { fill: #e8f0ff; font-size: 14px; font-weight: 500; }
+  .mut { fill: #70829e; font-size: 10px; }
+  .lbl { fill: #c8d2e6; font-size: 11px; }
+  .c { fill: rgb(10,34,64); stroke: rgb(48,148,255); stroke-width: 0.8; }
+  .hi { fill: rgb(58,38,5); stroke: rgb(255,162,0); stroke-width: 1.4; }
+  .off { fill: #1a0e12; stroke: rgb(255,110,110); stroke-width: 0.9; stroke-dasharray: 3 2; }
+  .n { fill: #e8f0ff; font-size: 10px; }
+  .no { fill: rgb(255,110,110); font-size: 10px; }
+</style>
+<rect width="100%" height="100%" fill="#0b0c14" rx="6"/>
+<text x="340" y="22" text-anchor="middle" class="title">Every thread computes its own global index</text>
+<text x="340" y="46" text-anchor="middle" style="fill: rgb(0,214,162); font-size: 12.5px;">i = blockIdx.x × blockDim.x + threadIdx.x       (blockDim.x = 8, n = 21)</text>
+
+<text x="140" y="74" text-anchor="middle" class="mut">block 0</text>
+<text x="348" y="74" text-anchor="middle" class="mut">block 1</text>
+<text x="556" y="74" text-anchor="middle" class="mut">block 2</text>
+
+<g>
+<rect x="44" y="86" width="22" height="30" rx="2" class="c"/><text x="55" y="101" text-anchor="middle" class="n">0</text>
+<rect x="68" y="86" width="22" height="30" rx="2" class="c"/><text x="79" y="101" text-anchor="middle" class="n">1</text>
+<rect x="92" y="86" width="22" height="30" rx="2" class="c"/><text x="103" y="101" text-anchor="middle" class="n">2</text>
+<rect x="116" y="86" width="22" height="30" rx="2" class="c"/><text x="127" y="101" text-anchor="middle" class="n">3</text>
+<rect x="140" y="86" width="22" height="30" rx="2" class="c"/><text x="151" y="101" text-anchor="middle" class="n">4</text>
+<rect x="164" y="86" width="22" height="30" rx="2" class="c"/><text x="175" y="101" text-anchor="middle" class="n">5</text>
+<rect x="188" y="86" width="22" height="30" rx="2" class="c"/><text x="199" y="101" text-anchor="middle" class="n">6</text>
+<rect x="212" y="86" width="22" height="30" rx="2" class="c"/><text x="223" y="101" text-anchor="middle" class="n">7</text>
+
+<rect x="252" y="86" width="22" height="30" rx="2" class="c"/><text x="263" y="101" text-anchor="middle" class="n">8</text>
+<rect x="276" y="86" width="22" height="30" rx="2" class="c"/><text x="287" y="101" text-anchor="middle" class="n">9</text>
+<rect x="300" y="86" width="22" height="30" rx="2" class="c"/><text x="311" y="101" text-anchor="middle" class="n">10</text>
+<rect x="324" y="86" width="22" height="30" rx="2" class="c"/><text x="335" y="101" text-anchor="middle" class="n">11</text>
+<rect x="348" y="86" width="22" height="30" rx="2" class="c"/><text x="359" y="101" text-anchor="middle" class="n">12</text>
+<rect x="372" y="86" width="22" height="30" rx="2" class="c"/><text x="383" y="101" text-anchor="middle" class="n">13</text>
+<rect x="396" y="86" width="22" height="30" rx="2" class="c"/><text x="407" y="101" text-anchor="middle" class="n">14</text>
+<rect x="420" y="86" width="22" height="30" rx="2" class="c"/><text x="431" y="101" text-anchor="middle" class="n">15</text>
+
+<rect x="460" y="86" width="22" height="30" rx="2" class="c"/><text x="471" y="101" text-anchor="middle" class="n">16</text>
+<rect x="484" y="86" width="22" height="30" rx="2" class="c"/><text x="495" y="101" text-anchor="middle" class="n">17</text>
+<rect x="508" y="86" width="22" height="30" rx="2" class="c"/><text x="519" y="101" text-anchor="middle" class="n">18</text>
+<rect x="532" y="86" width="22" height="30" rx="2" class="hi"/><text x="543" y="101" text-anchor="middle" class="n">19</text>
+<rect x="556" y="86" width="22" height="30" rx="2" class="c"/><text x="567" y="101" text-anchor="middle" class="n">20</text>
+<rect x="580" y="86" width="22" height="30" rx="2" class="off"/><text x="591" y="101" text-anchor="middle" class="no">21</text>
+<rect x="604" y="86" width="22" height="30" rx="2" class="off"/><text x="615" y="101" text-anchor="middle" class="no">22</text>
+<rect x="628" y="86" width="22" height="30" rx="2" class="off"/><text x="639" y="101" text-anchor="middle" class="no">23</text>
+</g>
+<line x1="579" y1="80" x2="579" y2="124" stroke="rgb(255,110,110)" stroke-width="1.2" stroke-dasharray="4 3"/>
+<text x="579" y="134" text-anchor="middle" style="fill: rgb(255,110,110); font-size: 10px;">n = 21</text>
+<text x="615" y="134" text-anchor="middle" style="fill: rgb(255,110,110); font-size: 9px;">masked</text>
+
+<text x="543" y="152" text-anchor="middle" style="fill: rgb(255,162,0); font-size: 10.5px;">block 2, thread 3: i = 2 × 8 + 3 = 19</text>
+<text x="340" y="180" text-anchor="middle" class="lbl">blocks = (n + 7) / 8 = 3, rounded up: 24 threads for 21 elements.</text>
+<text x="340" y="200" text-anchor="middle" class="mut">The last three threads exist but must not touch memory. That is the whole job of if (i &lt; n).</text>
+</svg>

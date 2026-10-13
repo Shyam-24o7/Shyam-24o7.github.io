@@ -1,0 +1,80 @@
+<svg width="100%" viewBox="0 0 680 318" xmlns="http://www.w3.org/2000/svg">
+<style>
+  text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; dominant-baseline: central; }
+  .title { fill: #e8f0ff; font-size: 14px; font-weight: 500; }
+  .mut { fill: #70829e; font-size: 10px; }
+  .c { fill: #161826; stroke: rgba(200,210,230,0.35); stroke-width: 0.8; }
+  .bad { fill: rgb(60,18,22); stroke: rgb(255,110,110); stroke-width: 1.6; }
+  .good { fill: rgb(5,54,42); stroke: rgb(0,214,162); stroke-width: 1.6; }
+  .pad { fill: #0e0f16; stroke: rgba(112,130,158,0.45); stroke-width: 0.8; stroke-dasharray: 3 3; }
+  .b { fill: #c8d2e6; font-size: 12px; }
+  .bp { fill: #4b5568; font-size: 11px; }
+</style>
+<rect width="100%" height="100%" fill="#0b0c14" rx="6"/>
+<text x="340" y="22" text-anchor="middle" class="title">Padding: one unused column turns a stack into a staircase</text>
+
+<text x="164" y="50" text-anchor="middle" style="fill: rgb(255,110,110); font-size: 12px; font-weight: 600;">float tile[4][4]</text>
+<text x="164" y="66" text-anchor="middle" class="mut">column 0 lives entirely in bank 0</text>
+<text x="518" y="50" text-anchor="middle" style="fill: rgb(0,214,162); font-size: 12px; font-weight: 600;">float tile[4][5]</text>
+<text x="518" y="66" text-anchor="middle" class="mut">column 0 spreads over all four banks</text>
+
+<!-- left headers -->
+<text x="92" y="86" text-anchor="middle" class="mut">col 0</text><text x="140" y="86" text-anchor="middle" class="mut">col 1</text>
+<text x="188" y="86" text-anchor="middle" class="mut">col 2</text><text x="236" y="86" text-anchor="middle" class="mut">col 3</text>
+<!-- left grid: bank = c -->
+<text x="62" y="118" text-anchor="end" class="mut">row 0</text>
+<rect x="70" y="96" width="44" height="44" rx="3" class="bad"/><text x="92" y="118" text-anchor="middle" class="b">B0</text>
+<rect x="118" y="96" width="44" height="44" rx="3" class="c"/><text x="140" y="118" text-anchor="middle" class="b">B1</text>
+<rect x="166" y="96" width="44" height="44" rx="3" class="c"/><text x="188" y="118" text-anchor="middle" class="b">B2</text>
+<rect x="214" y="96" width="44" height="44" rx="3" class="c"/><text x="236" y="118" text-anchor="middle" class="b">B3</text>
+<text x="62" y="166" text-anchor="end" class="mut">row 1</text>
+<rect x="70" y="144" width="44" height="44" rx="3" class="bad"/><text x="92" y="166" text-anchor="middle" class="b">B0</text>
+<rect x="118" y="144" width="44" height="44" rx="3" class="c"/><text x="140" y="166" text-anchor="middle" class="b">B1</text>
+<rect x="166" y="144" width="44" height="44" rx="3" class="c"/><text x="188" y="166" text-anchor="middle" class="b">B2</text>
+<rect x="214" y="144" width="44" height="44" rx="3" class="c"/><text x="236" y="166" text-anchor="middle" class="b">B3</text>
+<text x="62" y="214" text-anchor="end" class="mut">row 2</text>
+<rect x="70" y="192" width="44" height="44" rx="3" class="bad"/><text x="92" y="214" text-anchor="middle" class="b">B0</text>
+<rect x="118" y="192" width="44" height="44" rx="3" class="c"/><text x="140" y="214" text-anchor="middle" class="b">B1</text>
+<rect x="166" y="192" width="44" height="44" rx="3" class="c"/><text x="188" y="214" text-anchor="middle" class="b">B2</text>
+<rect x="214" y="192" width="44" height="44" rx="3" class="c"/><text x="236" y="214" text-anchor="middle" class="b">B3</text>
+<text x="62" y="262" text-anchor="end" class="mut">row 3</text>
+<rect x="70" y="240" width="44" height="44" rx="3" class="bad"/><text x="92" y="262" text-anchor="middle" class="b">B0</text>
+<rect x="118" y="240" width="44" height="44" rx="3" class="c"/><text x="140" y="262" text-anchor="middle" class="b">B1</text>
+<rect x="166" y="240" width="44" height="44" rx="3" class="c"/><text x="188" y="262" text-anchor="middle" class="b">B2</text>
+<rect x="214" y="240" width="44" height="44" rx="3" class="c"/><text x="236" y="262" text-anchor="middle" class="b">B3</text>
+
+<line x1="300" y1="44" x2="300" y2="292" stroke="rgba(222,220,209,0.2)" stroke-width="0.5" stroke-dasharray="4 4"/>
+
+<!-- right headers -->
+<text x="422" y="86" text-anchor="middle" class="mut">col 0</text><text x="470" y="86" text-anchor="middle" class="mut">col 1</text>
+<text x="518" y="86" text-anchor="middle" class="mut">col 2</text><text x="566" y="86" text-anchor="middle" class="mut">col 3</text>
+<text x="614" y="86" text-anchor="middle" class="mut">pad</text>
+<!-- right grid: bank = (r + c) mod 4 -->
+<text x="392" y="118" text-anchor="end" class="mut">row 0</text>
+<rect x="400" y="96" width="44" height="44" rx="3" class="good"/><text x="422" y="118" text-anchor="middle" class="b">B0</text>
+<rect x="448" y="96" width="44" height="44" rx="3" class="c"/><text x="470" y="118" text-anchor="middle" class="b">B1</text>
+<rect x="496" y="96" width="44" height="44" rx="3" class="c"/><text x="518" y="118" text-anchor="middle" class="b">B2</text>
+<rect x="544" y="96" width="44" height="44" rx="3" class="c"/><text x="566" y="118" text-anchor="middle" class="b">B3</text>
+<rect x="592" y="96" width="44" height="44" rx="3" class="pad"/><text x="614" y="118" text-anchor="middle" class="bp">B0</text>
+<text x="392" y="166" text-anchor="end" class="mut">row 1</text>
+<rect x="400" y="144" width="44" height="44" rx="3" class="good"/><text x="422" y="166" text-anchor="middle" class="b">B1</text>
+<rect x="448" y="144" width="44" height="44" rx="3" class="c"/><text x="470" y="166" text-anchor="middle" class="b">B2</text>
+<rect x="496" y="144" width="44" height="44" rx="3" class="c"/><text x="518" y="166" text-anchor="middle" class="b">B3</text>
+<rect x="544" y="144" width="44" height="44" rx="3" class="c"/><text x="566" y="166" text-anchor="middle" class="b">B0</text>
+<rect x="592" y="144" width="44" height="44" rx="3" class="pad"/><text x="614" y="166" text-anchor="middle" class="bp">B1</text>
+<text x="392" y="214" text-anchor="end" class="mut">row 2</text>
+<rect x="400" y="192" width="44" height="44" rx="3" class="good"/><text x="422" y="214" text-anchor="middle" class="b">B2</text>
+<rect x="448" y="192" width="44" height="44" rx="3" class="c"/><text x="470" y="214" text-anchor="middle" class="b">B3</text>
+<rect x="496" y="192" width="44" height="44" rx="3" class="c"/><text x="518" y="214" text-anchor="middle" class="b">B0</text>
+<rect x="544" y="192" width="44" height="44" rx="3" class="c"/><text x="566" y="214" text-anchor="middle" class="b">B1</text>
+<rect x="592" y="192" width="44" height="44" rx="3" class="pad"/><text x="614" y="214" text-anchor="middle" class="bp">B2</text>
+<text x="392" y="262" text-anchor="end" class="mut">row 3</text>
+<rect x="400" y="240" width="44" height="44" rx="3" class="good"/><text x="422" y="262" text-anchor="middle" class="b">B3</text>
+<rect x="448" y="240" width="44" height="44" rx="3" class="c"/><text x="470" y="262" text-anchor="middle" class="b">B0</text>
+<rect x="496" y="240" width="44" height="44" rx="3" class="c"/><text x="518" y="262" text-anchor="middle" class="b">B1</text>
+<rect x="544" y="240" width="44" height="44" rx="3" class="c"/><text x="566" y="262" text-anchor="middle" class="b">B2</text>
+<rect x="592" y="240" width="44" height="44" rx="3" class="pad"/><text x="614" y="262" text-anchor="middle" class="bp">B3</text>
+
+<text x="164" y="302" text-anchor="middle" style="fill: rgb(255,110,110); font-size: 10.5px;">column read: 4 threads queue at one bank</text>
+<text x="518" y="302" text-anchor="middle" style="fill: rgb(0,214,162); font-size: 10.5px;">column read: one pass, rows still fine</text>
+</svg>

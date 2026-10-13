@@ -1,0 +1,58 @@
+<svg width="100%" viewBox="0 0 680 330" xmlns="http://www.w3.org/2000/svg">
+<style>
+  text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; dominant-baseline: central; }
+  .title { fill: #e8f0ff; font-size: 14px; font-weight: 500; }
+  .lbl { fill: #e8f0ff; font-size: 12px; font-weight: 600; }
+  .txt { fill: #c8d2e6; font-size: 11px; }
+  .mut { fill: #70829e; font-size: 10.5px; }
+  .mat { fill: #12131c; stroke: rgba(200,210,230,0.4); stroke-width: 1; }
+  .arrow { stroke: rgba(200,210,230,0.55); stroke-width: 1.2; fill: none; }
+  .head { fill: rgba(200,210,230,0.55); }
+</style>
+<rect width="100%" height="100%" fill="#0b0c14" rx="6"/>
+<text x="340" y="22" text-anchor="middle" class="title">Tiling: a block loads one tile of A and B, then every thread reuses them</text>
+
+<!-- B (top) -->
+<rect x="200" y="44" width="140" height="120" class="mat"/>
+<rect x="235" y="44" width="35" height="120" fill="rgba(48,148,255,0.12)"/>
+<rect x="235" y="80" width="35" height="35" fill="rgb(10,34,64)" stroke="rgb(48,148,255)" stroke-width="1.5"/>
+<text x="352" y="56" class="lbl">B</text>
+<text x="252" y="97" text-anchor="middle" style="fill: rgb(48,148,255); font-size: 10px;">tile k</text>
+<text x="252" y="140" text-anchor="middle" class="mut">k ↓</text>
+
+<!-- A (left) -->
+<rect x="40" y="180" width="140" height="120" class="mat"/>
+<rect x="40" y="215" width="140" height="35" fill="rgba(0,214,162,0.12)"/>
+<rect x="76" y="215" width="35" height="35" fill="rgb(5,54,42)" stroke="rgb(0,214,162)" stroke-width="1.5"/>
+<text x="28" y="192" class="lbl">A</text>
+<text x="93" y="232" text-anchor="middle" style="fill: rgb(0,214,162); font-size: 10px;">tile k</text>
+<text x="148" y="232" text-anchor="middle" class="mut">k →</text>
+
+<!-- C -->
+<rect x="200" y="180" width="140" height="120" class="mat"/>
+<rect x="235" y="215" width="35" height="35" fill="rgb(58,38,5)" stroke="rgb(255,162,0)" stroke-width="1.5"/>
+<text x="352" y="192" class="lbl">C</text>
+<text x="252" y="232" text-anchor="middle" style="fill: rgb(255,162,0); font-size: 10px;">C tile</text>
+<text x="252" y="272" text-anchor="middle" class="mut">one block</text>
+<text x="252" y="286" text-anchor="middle" class="mut">computes this tile</text>
+
+<!-- shared memory -->
+<rect x="400" y="44" width="250" height="96" rx="6" fill="rgba(48,148,255,0.06)" stroke="rgba(48,148,255,0.5)" stroke-width="1"/>
+<text x="525" y="131" text-anchor="middle" class="txt">shared memory (one copy per block)</text>
+<rect x="450" y="72" width="44" height="44" fill="rgb(5,54,42)" stroke="rgb(0,214,162)" stroke-width="1.2"/>
+<text x="472" y="94" text-anchor="middle" style="fill: rgb(0,214,162); font-size: 11px;">As</text>
+<rect x="556" y="72" width="44" height="44" fill="rgb(10,34,64)" stroke="rgb(48,148,255)" stroke-width="1.2"/>
+<text x="578" y="94" text-anchor="middle" style="fill: rgb(48,148,255); font-size: 11px;">Bs</text>
+<path d="M270 88 Q 430 34 574 66" class="arrow"/><polygon points="568,60 578,70 567,70" class="head"/>
+<path d="M111 232 Q 380 170 448 110" class="arrow"/><polygon points="441,108 450,106 446,115" class="head"/>
+
+<!-- steps -->
+<text x="400" y="168" class="txt">1. every thread loads one element of each tile</text>
+<text x="414" y="184" class="mut">(coalesced, so the tile arrives in a few sectors)</text>
+<text x="400" y="206" class="txt">2. __syncthreads()</text>
+<text x="400" y="228" class="txt">3. each thread does TILE multiply-adds</text>
+<text x="414" y="244" class="mut">reading only from shared memory</text>
+<text x="400" y="266" class="txt">4. __syncthreads(), slide k to the next tile</text>
+
+<text x="340" y="316" text-anchor="middle" class="mut">Each element now comes from DRAM once per block, not once per thread: global traffic falls by the tile size.</text>
+</svg>
