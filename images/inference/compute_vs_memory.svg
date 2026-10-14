@@ -1,0 +1,20 @@
+<svg width="100%" viewBox="0 0 680 330" xmlns="http://www.w3.org/2000/svg">
+<style>
+  text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; dominant-baseline: central; }
+  .title { fill: #e8f0ff; font-size: 14px; font-weight: 500; }
+  .mut { fill: #70829e; font-size: 10px; }
+  .lbl { fill: #c8d2e6; font-size: 11px; }
+  .n { fill: #e8f0ff; font-size: 10.5px; }
+  .h { fill: #e8f0ff; font-size: 11.5px; font-weight: 600; }
+</style>
+<rect width="100%" height="100%" fill="#0b0c14" rx="6"/>
+<text x="340" y="22" text-anchor="middle" class="title">Compute time vs memory time for one forward pass</text>
+<text x="340" y="42" text-anchor="middle" class="mut">Llama 3 8B in BF16 on an H100: 989 TFLOP/s of tensor maths, 3.35 TB/s of HBM</text>
+<rect x="232" y="56" width="10" height="8" rx="3" fill="rgb(40,22,64)" stroke="rgb(170,130,255)" stroke-width="1" /><text x="246" y="60" text-anchor="start" class="mut">compute time at peak</text><rect x="372" y="56" width="10" height="8" rx="3" fill="rgb(6,48,58)" stroke="rgb(80,210,230)" stroke-width="1" /><text x="386" y="60" text-anchor="start" class="mut">memory time at peak</text>
+<text x="30" y="88" text-anchor="start" class="h">prefill</text><text x="30" y="104" text-anchor="start" class="mut">2,048-token prompt</text><rect x="232" y="78" width="200" height="14" rx="3" fill="rgb(40,22,64)" stroke="rgb(170,130,255)" stroke-width="1" /><text x="438" y="85" text-anchor="start" class="n">34.4 ms</text><rect x="232" y="97" width="28.488372093023255" height="14" rx="3" fill="rgb(6,48,58)" stroke="rgb(80,210,230)" stroke-width="1" /><text x="266.48837209302326" y="104" text-anchor="start" class="n">4.9 ms</text><text x="652" y="95" text-anchor="end" class="lbl" style="fill: rgb(48,148,255);">compute-bound, 7×</text>
+<text x="30" y="140" text-anchor="start" class="h">decode</text><text x="30" y="156" text-anchor="start" class="mut">batch 1</text><rect x="232" y="130" width="2" height="14" rx="3" fill="rgb(40,22,64)" stroke="rgb(170,130,255)" stroke-width="1" /><text x="240" y="137" text-anchor="start" class="n">0.017 ms</text><rect x="232" y="149" width="200" height="14" rx="3" fill="rgb(6,48,58)" stroke="rgb(80,210,230)" stroke-width="1" /><text x="438" y="156" text-anchor="start" class="n">4.9 ms</text><text x="652" y="147" text-anchor="end" class="lbl" style="fill: rgb(255,110,110);">memory-bound, 280×</text>
+<text x="30" y="192" text-anchor="start" class="h">decode</text><text x="30" y="208" text-anchor="start" class="mut">batch 64</text><rect x="232" y="182" width="22.222222222222225" height="14" rx="3" fill="rgb(40,22,64)" stroke="rgb(170,130,255)" stroke-width="1" /><text x="260.22222222222223" y="189" text-anchor="start" class="n">1.1 ms</text><rect x="232" y="201" width="200" height="14" rx="3" fill="rgb(6,48,58)" stroke="rgb(80,210,230)" stroke-width="1" /><text x="438" y="208" text-anchor="start" class="n">9.9 ms</text><text x="652" y="199" text-anchor="end" class="lbl" style="fill: rgb(255,162,0);">memory-bound, 9×</text>
+<text x="30" y="244" text-anchor="start" class="h">decode</text><text x="30" y="260" text-anchor="start" class="mut">batch 240 (KV full)</text><rect x="232" y="234" width="35" height="14" rx="3" fill="rgb(40,22,64)" stroke="rgb(170,130,255)" stroke-width="1" /><text x="273" y="241" text-anchor="start" class="n">4.2 ms</text><rect x="232" y="253" width="200" height="14" rx="3" fill="rgb(6,48,58)" stroke="rgb(80,210,230)" stroke-width="1" /><text x="438" y="260" text-anchor="start" class="n">24 ms</text><text x="652" y="251" text-anchor="end" class="lbl" style="fill: rgb(255,162,0);">memory-bound, 6×</text>
+<text x="340" y="292" text-anchor="middle" class="mut">compute time = FLOPs ÷ 989 TFLOP/s, memory time = bytes ÷ 3.35 TB/s. The slower one sets the step time.</text>
+<text x="340" y="310" text-anchor="middle" class="lbl">Each extra 2K-token sequence adds 0.08 ms of KV reads but only 0.017 ms of maths.</text>
+</svg>
