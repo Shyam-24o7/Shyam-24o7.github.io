@@ -4,7 +4,7 @@
   .title { fill: #e8f0ff; font-size: 14px; font-weight: 500; }
   .lbl { fill: #e8f0ff; font-size: 12px; font-weight: 600; }
   .txt { fill: #c8d2e6; font-size: 11px; }
-  .mut { fill: #70829e; font-size: 10.5px; }
+  .mut { fill: #97a6bd; font-size: 10.5px; }
   .mat { fill: #12131c; stroke: rgba(200,210,230,0.4); stroke-width: 1; }
   .arrow { stroke: rgba(200,210,230,0.55); stroke-width: 1.2; fill: none; }
   .head { fill: rgba(200,210,230,0.55); }

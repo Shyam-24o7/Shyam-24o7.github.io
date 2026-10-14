@@ -3,7 +3,7 @@
   text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; dominant-baseline: central; }
   .title { fill: #e8f0ff; font-size: 14px; font-weight: 500; }
   .lbl { fill: #c8d2e6; font-size: 11px; }
-  .mut { fill: #70829e; font-size: 10.5px; }
+  .mut { fill: #97a6bd; font-size: 10.5px; }
   .box { stroke-width: 1.2; }
   .pipe { fill: none; stroke: rgba(200,210,230,0.35); stroke-width: 1.2; }
   .ok { fill: rgb(5,54,42); stroke: rgb(0,214,162); stroke-width: 0.9; }

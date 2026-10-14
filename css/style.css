@@ -1,5 +1,5 @@
 /* ============================================================
-   shyam-tech — style.css
+   shyam-tech â€” style.css
    ============================================================ */
 
 /* ============================================================
@@ -43,12 +43,12 @@ html.light {
   --bg-card:       #faf7f2;
   --bg-card-hover: #f4efe8;
   --bg-code:       #e5e0d8;
-  --border:        #d5cec4;
-  --border-subtle: #e0d9d0;
-  --text:          #1c1917;
-  --text-muted:    #57534e;
-  --text-dim:      #a8a29e;
-  --accent:        #0c7a96;
+  --border:        #cfc6ba;
+  --border-subtle: #ddd5ca;
+  --text:          #15120f;
+  --text-muted:    #3f3a35;
+  --text-dim:      #6f6860;
+  --accent:        #0a6a84;
   --accent-glow:   rgba(12, 122, 150, 0.2);
   --accent-dim:    rgba(12, 122, 150, 0.1);
   --accent-border: rgba(12, 122, 150, 0.35);
@@ -69,7 +69,29 @@ html.light .post-content code { background: #e8e2d9; color: #b5341c; border-colo
 html.light .highlight,
 html.light .post-content pre { background: #e8e2d9 !important; border-color: #d5cec4; }
 html.light .highlight[data-lang]::before { background: #dfd8ce; color: var(--text-dim); }
-html.light .highlight .gutter { color: #b0a89e; border-right-color: #d5cec4; }
+html.light .highlight .gutter { color: #8f877d; border-right-color: #d5cec4; }
+html.light .highlight, html.light .highlight .code, html.light .post-content pre code { color: #2b2620; }
+/* syntax colours tuned for the light background (One Light, darkened for contrast) */
+html.light .highlight .keyword   { color: #9b1fa0; }
+html.light .highlight .built_in,
+html.light .highlight .type,
+html.light .highlight .attr,
+html.light .highlight .property  { color: #8a5a00; }
+html.light .highlight .literal,
+html.light .highlight .operator  { color: #0b6f99; }
+html.light .highlight .number    { color: #a14f00; }
+html.light .highlight .string,
+html.light .highlight .regexp    { color: #2f7a2c; }
+html.light .highlight .comment   { color: #7a7268; }
+html.light .highlight .name,
+html.light .highlight .tag       { color: #b8321f; }
+html.light .highlight .title     { color: #2350c4; }
+html.light .highlight .punctuation { color: #4a443e; }
+/* sidebar contents */
+html.light .post-toc-link { color: #5e574f; }
+html.light .post-toc-link:hover { color: var(--text); background: rgba(0,0,0,0.045); }
+html.light .post-toc-link.toc-active { background: var(--accent-dim); }
+html.light .post-toc-title { color: #6f6860; }
 
 /* header for light */
 html.light .site-header { background: rgba(239,235,228,0.92); }
@@ -112,7 +134,7 @@ img { max-width: 100%; height: auto; display: block; }
 .container { max-width: 1180px; margin: 0 auto; padding: 0 1.5rem; }
 
 /* ============================================================
-   SCROLL PROGRESS BAR — fixed 2px glowing line at top
+   SCROLL PROGRESS BAR â€” fixed 2px glowing line at top
    ============================================================ */
 #scroll-progress {
   position: fixed;
@@ -211,7 +233,7 @@ img { max-width: 100%; height: auto; display: block; }
   display: flex;
   align-items: center;
   height: 58px;
-  /* no space-between — nav sits naturally after title, toggle pushed right by margin-left:auto */
+  /* no space-between â€” nav sits naturally after title, toggle pushed right by margin-left:auto */
 }
 
 .site-title {
@@ -477,7 +499,7 @@ html.light .theme-toggle:hover {
 }
 
 /* ============================================================
-   MAIN LAYOUT — sidebar LEFT, content RIGHT
+   MAIN LAYOUT â€” sidebar LEFT, content RIGHT
    ============================================================ */
 .site-main { padding: 2.5rem 0 4rem; }
 
@@ -725,7 +747,7 @@ html.light .theme-toggle:hover {
   transition: opacity var(--dur), gap 0.2s var(--ease);
 }
 .read-more:hover { opacity: 1; }
-.read-more::after { content: '→'; transition: transform 0.2s var(--ease); }
+.read-more::after { content: 'â†’'; transition: transform 0.2s var(--ease); }
 .read-more:hover::after { transform: translateX(4px); }
 
 /* ============================================================
@@ -851,9 +873,9 @@ html.light .theme-toggle:hover {
 .post-content a:hover { text-decoration-color: var(--accent); opacity: 0.85; }
 .post-content img { border-radius: var(--radius); border: 1px solid var(--border); margin: 1.25rem auto; }
 .post-content p > em small { font-size: 0.72em; opacity: 0.45; margin-left: 0.4em; }
-/* SVGs were designed for dark mode — invert in light mode so they blend naturally */
+/* SVGs were designed for dark mode â€” invert in light mode so they blend naturally */
 html.light .post-content img[src$=".svg"] {
-  filter: invert(1) hue-rotate(180deg) contrast(1.25) brightness(0.92);
+  filter: invert(1) hue-rotate(180deg) contrast(1.6) brightness(0.96);
   background: transparent;
   border-color: var(--border);
 }
@@ -1160,7 +1182,7 @@ html.light .contact-icon-github { --contact-color: var(--accent); }
 }
 
 /* ============================================================
-   RESPONSIVE — ≤960px: single column, sidebar moves BELOW content
+   RESPONSIVE â€” â‰¤960px: single column, sidebar moves BELOW content
    ============================================================ */
 @media (max-width: 960px) {
   .content-grid {
@@ -1181,7 +1203,7 @@ html.light .contact-icon-github { --contact-color: var(--accent); }
 }
 
 /* ============================================================
-   RESPONSIVE — ≤600px: mobile phones
+   RESPONSIVE â€” â‰¤600px: mobile phones
    ============================================================ */
 @media (max-width: 600px) {
   /* Hamburger nav */
@@ -1231,7 +1253,7 @@ html.light .contact-icon-github { --contact-color: var(--accent); }
 }
 
 /* ============================================================
-   POST TABLE OF CONTENTS — fixed left panel, wide screens only
+   POST TABLE OF CONTENTS â€” fixed left panel, wide screens only
    ============================================================ */
 .post-toc {
   display: none; /* hidden by default; shown only on wide viewports */
@@ -1248,7 +1270,7 @@ html.light .contact-icon-github { --contact-color: var(--accent); }
     width: min(200px, calc(50vw - 606px));
     max-height: calc(100vh - 100px);
     overflow-y: auto;
-    /* hide the scrollbar visually — JS auto-scrolls it */
+    /* hide the scrollbar visually â€” JS auto-scrolls it */
     scrollbar-width: none;
     padding: 0.5rem 0 1rem;
     z-index: 10;
@@ -1298,7 +1320,7 @@ html.light .contact-icon-github { --contact-color: var(--accent); }
 }
 
 /* ============================================================
-   HERO TOPICS — replace typewriter with side-by-side glow chips
+   HERO TOPICS â€” replace typewriter with side-by-side glow chips
    ============================================================ */
 .hero-topics {
   display: flex;

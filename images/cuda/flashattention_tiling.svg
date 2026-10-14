@@ -4,8 +4,8 @@
   .title { fill: #e8f0ff; font-size: 14px; font-weight: 500; }
   .lbl { fill: #e8f0ff; font-size: 11px; }
   .big { fill: #e8f0ff; font-size: 13px; font-weight: 600; }
-  .sub { fill: #70829e; font-size: 9.5px; }
-  .mut { fill: #70829e; font-size: 10.5px; }
+  .sub { fill: #97a6bd; font-size: 9.5px; }
+  .mut { fill: #97a6bd; font-size: 10.5px; }
   .mat { fill: #12131c; stroke: rgba(200,210,230,0.4); stroke-width: 1; }
   .step { fill: #161826; stroke: rgba(200,210,230,0.35); stroke-width: 0.9; }
   .arrow { stroke: rgba(200,210,230,0.55); stroke-width: 1.2; fill: none; }
