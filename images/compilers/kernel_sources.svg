@@ -1,0 +1,15 @@
+<svg width="100%" viewBox="0 0 680 300" xmlns="http://www.w3.org/2000/svg">
+<style>
+  text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; dominant-baseline: central; }
+  .title { fill: #e8f0ff; font-size: 14px; font-weight: 500; }
+  .mut { fill: #97a6bd; font-size: 10px; }
+  .lbl { fill: #c8d2e6; font-size: 11px; }
+  .n { fill: #e8f0ff; font-size: 10.5px; }
+  .h { fill: #e8f0ff; font-size: 11.5px; font-weight: 600; }
+</style>
+<rect width="100%" height="100%" fill="#0b0c14" rx="6"/>
+<text x="340" y="22" text-anchor="middle" class="title">Three places a GPU kernel can come from</text>
+<rect x="16" y="44" width="208" height="170" rx="3" fill="rgb(58,38,5)" stroke="rgb(255,162,0)" stroke-width="1" /><text x="120" y="64" text-anchor="middle" class="h">libraries</text><text x="120" y="84" text-anchor="middle" class="mut" style="fill: rgb(255,162,0);">cuBLAS, cuDNN, CUTLASS</text><text x="120" y="116" text-anchor="middle" class="mut" style="font-size: 10px;">tuned by the vendor for years</text><text x="120" y="144" text-anchor="middle" class="mut" style="font-size: 10px;">near-peak for big matmuls and convs</text><text x="120" y="172" text-anchor="middle" class="mut" style="font-size: 10px;">fixed menu: cannot fuse your ops in</text><rect x="236" y="44" width="208" height="170" rx="3" fill="rgb(60,18,22)" stroke="rgb(255,110,110)" stroke-width="1" /><text x="340" y="64" text-anchor="middle" class="h">written by hand</text><text x="340" y="84" text-anchor="middle" class="mut" style="fill: rgb(255,110,110);">FlashAttention, custom CUDA</text><text x="340" y="116" text-anchor="middle" class="mut" style="font-size: 10px;">the absolute best, for one pattern</text><text x="340" y="144" text-anchor="middle" class="mut" style="font-size: 10px;">needs rare expertise</text><text x="340" y="172" text-anchor="middle" class="mut" style="font-size: 10px;">re-written for every new GPU</text><rect x="456" y="44" width="208" height="170" rx="3" fill="rgb(5,54,42)" stroke="rgb(0,214,162)" stroke-width="1" /><text x="560" y="64" text-anchor="middle" class="h">generated</text><text x="560" y="84" text-anchor="middle" class="mut" style="fill: rgb(0,214,162);">Inductor → Triton, XLA, TVM</text><text x="560" y="116" text-anchor="middle" class="mut" style="font-size: 10px;">fuses whatever your model does</text><text x="560" y="144" text-anchor="middle" class="mut" style="font-size: 10px;">good, not always the best</text><text x="560" y="172" text-anchor="middle" class="mut" style="font-size: 10px;">costs compile time</text><text x="340" y="240" text-anchor="middle" class="lbl">Real models mix all three: torch.compile calls cuBLAS for the matmul, generates the rest,</text>
+<text x="340" y="258" text-anchor="middle" class="lbl">and vLLM drops in hand-written attention kernels on top.</text>
+<text x="340" y="282" text-anchor="middle" class="mut">Eager PyTorch only has the first two, one prebuilt kernel per operation.</text>
+</svg>
